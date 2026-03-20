@@ -843,10 +843,14 @@
       </div>
     </div>
     <div class="map-overlay-btns">
-      <button class="map-overlay-btn" onclick="setMapLayer('dark')" id="btn-dark">🗺 Mapa</button>
-      <button class="map-overlay-btn active" onclick="setMapLayer('satellite')" id="btn-satellite">🛰 Satélite</button>
+      <button class="map-overlay-btn active" onclick="setMapView('satellite')" id="btn-view-satellite">🛰 Satélite</button>
+      <button class="map-overlay-btn" onclick="setMapView('waves')" id="btn-view-waves">🌊 Olas</button>
+      <button class="map-overlay-btn" onclick="setMapView('swell1')" id="btn-view-swell1">〰 Marejada</button>
+      <button class="map-overlay-btn" onclick="setMapView('wind')" id="btn-view-wind">💨 Viento</button>
     </div>
     <div id="beach-map" class="beach-map-container"></div>
+    <iframe id="windy-iframe" class="beach-map-container" style="border:none;display:none"
+      title="Olas en vivo - Windy" loading="lazy" allow="fullscreen"></iframe>
   </div>
 </section>
 
@@ -1176,7 +1180,7 @@ function buildContent(beach, data) {
 
   </div><!-- /hero-tips-row -->
 
-  <!-- OLEAJE & SWELL -->
+  <!-- DATOS DE MAR Y VIENTO (grid único 2 col) -->
   <div class="data-grid">
     <div class="data-card">
       <div class="card-title"><span class="card-icon">🌊</span> Oleaje</div>
@@ -1225,10 +1229,7 @@ function buildContent(beach, data) {
         <span class="metric-val">${(m.wind_wave_period ?? 0).toFixed(1)} <span class="unit">s</span></span>
       </div>
     </div>
-  </div>
 
-  <!-- VIENTO & AGUA -->
-  <div class="data-grid">
     <div class="data-card">
       <div class="card-title"><span class="card-icon">💨</span> Viento</div>
       <div class="compass-wrap">
@@ -1261,34 +1262,35 @@ function buildContent(beach, data) {
     </div>
   </div>
 
-  <!-- UV -->
-  <div class="data-card" style="margin-bottom:12px">
-    <div class="card-title"><span class="card-icon">☀️</span> Radiación UV</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <span style="font-family:var(--font-data);font-size:2rem;font-weight:600;color:${uv.color}">${(w.uv_index ?? 0).toFixed(1)}</span>
-      <span style="font-family:var(--font-data);font-size:.8rem;color:${uv.color};border:1px solid ${uv.color};padding:4px 12px;border-radius:4px">${uv.label}</span>
-    </div>
-    <div class="uv-bar-wrap">
-      <div class="uv-track">
-        <div class="uv-marker" style="left:${Math.min(98, (w.uv_index ?? 0) / 12 * 100)}%"></div>
+  <!-- UV + DIGESA lado a lado -->
+  <div class="data-grid">
+    <div class="data-card">
+      <div class="card-title"><span class="card-icon">☀️</span> Radiación UV</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-family:var(--font-data);font-size:2rem;font-weight:600;color:${uv.color}">${(w.uv_index ?? 0).toFixed(1)}</span>
+        <span style="font-family:var(--font-data);font-size:.75rem;color:${uv.color};border:1px solid ${uv.color};padding:3px 10px;border-radius:4px">${uv.label}</span>
       </div>
-      <div class="uv-labels"><span>0</span><span>3</span><span>6</span><span>8</span><span>10</span><span>12+</span></div>
+      <div class="uv-bar-wrap">
+        <div class="uv-track">
+          <div class="uv-marker" style="left:${Math.min(98, (w.uv_index ?? 0) / 12 * 100)}%"></div>
+        </div>
+        <div class="uv-labels"><span>0</span><span>3</span><span>6</span><span>8</span><span>10</span><span>12+</span></div>
+      </div>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:10px">${uvAdvice(w.uv_index ?? 0)}</div>
     </div>
-    <div style="font-size:.75rem;color:var(--muted);margin-top:10px">${uvAdvice(w.uv_index ?? 0)}</div>
-  </div>
 
-  <!-- DIGESA -->
-  <div class="data-card" style="margin-bottom:12px">
-    <div class="card-title"><span class="card-icon">🏥</span> Calidad Sanitaria · DIGESA</div>
-    <div class="digesa-status ${digesa.cls}">
-      <div class="digesa-icon">${digesa.icon}</div>
-      <div>
-        <div class="digesa-text" style="color: ${digesa.cls === 'saludable' ? 'var(--green)' : digesa.cls === 'no-saludable' ? 'var(--red)' : 'var(--muted)'}">${digesa.label}</div>
-        <div class="digesa-sub">${digesa.sub}</div>
+    <div class="data-card">
+      <div class="card-title"><span class="card-icon">🏥</span> Calidad Sanitaria · DIGESA</div>
+      <div class="digesa-status ${digesa.cls}">
+        <div class="digesa-icon">${digesa.icon}</div>
+        <div>
+          <div class="digesa-text" style="color: ${digesa.cls === 'saludable' ? 'var(--green)' : digesa.cls === 'no-saludable' ? 'var(--red)' : 'var(--muted)'}">${digesa.label}</div>
+          <div class="digesa-sub">${digesa.sub}</div>
+        </div>
       </div>
-    </div>
-    <div style="font-family:var(--font-data);font-size:.6rem;color:var(--muted);margin-top:8px">
-      Fuente: veranosaludable.minsa.gob.pe · Actualización semanal
+      <div style="font-family:var(--font-data);font-size:.6rem;color:var(--muted);margin-top:8px">
+        Fuente: veranosaludable.minsa.gob.pe · Actualización semanal
+      </div>
     </div>
   </div>
 
@@ -1460,19 +1462,44 @@ function refreshMapMarkers() {
   });
 }
 
+let currentMapView = 'satellite'; // 'satellite' | 'waves' | 'swell1' | 'wind'
+
+function buildWindyURL(beach, overlay) {
+  return `https://embed.windy.com/embed2.html?` +
+    `lat=${beach.lat}&lon=${beach.lon}` +
+    `&detailLat=${beach.lat}&detailLon=${beach.lon}` +
+    `&zoom=11&level=surface&overlay=${overlay}` +
+    `&product=ecmwf&menu=false&message=true&marker=true` +
+    `&calendar=now&pressure=false&type=map&location=coordinates` +
+    `&detail=false&metricWind=default&metricTemp=default&radarRange=-1`;
+}
+
+function setMapView(view) {
+  currentMapView = view;
+  ['satellite', 'waves', 'swell1', 'wind'].forEach(v => {
+    document.getElementById(`btn-view-${v}`)?.classList.toggle('active', v === view);
+  });
+  const satEl = document.getElementById('beach-map');
+  const windyEl = document.getElementById('windy-iframe');
+  if (view === 'satellite') {
+    satEl.style.display = 'block';
+    windyEl.style.display = 'none';
+    leafletMap?.invalidateSize();
+  } else {
+    satEl.style.display = 'none';
+    windyEl.style.display = 'block';
+    windyEl.src = buildWindyURL(BEACHES[currentBeach], view);
+  }
+}
+
 function updateLeafletMap(beach) {
   if (!leafletMap) return;
   leafletMap.setView([beach.lat, beach.lon], 14, { animate: true, duration: 0.6 });
   refreshMapMarkers();
-}
-
-function setMapLayer(layer) {
-  currentLayerKey = layer;
-  ['satellite', 'dark'].forEach(l => {
-    document.getElementById(`btn-${l}`)?.classList.toggle('active', l === layer);
-  });
-  if (currentTileLayer && leafletMap) leafletMap.removeLayer(currentTileLayer);
-  currentTileLayer = L.tileLayer(TILE_DEFS[layer].url, TILE_DEFS[layer].opts).addTo(leafletMap);
+  if (currentMapView !== 'satellite') {
+    const windyEl = document.getElementById('windy-iframe');
+    if (windyEl) windyEl.src = buildWindyURL(beach, currentMapView);
+  }
 }
 
 /* ════════════════════════════════════════════════
