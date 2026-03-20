@@ -1,4 +1,4 @@
-const CACHE = 'ow-lima-v1';
+const CACHE = 'ow-lima-v3';
 const STATIC = [
   '/',
   '/index.html',
