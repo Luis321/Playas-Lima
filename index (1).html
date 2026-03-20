@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#080d1a" />
+  <meta name="description" content="Estado de playas para nadadores de aguas abiertas en Lima" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="OW Lima" />
+  <link rel="manifest" href="manifest.json" />
+  <title>OW Lima — Playas para Nadadores</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;600&family=Barlow+Condensed:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── TOKENS ───────────────────────────────────────────── */
+    :root {
+      --bg:        #06090f;
+      --surface:   #0c1220;
+      --surface2:  #111927;
+      --border:    rgba(0,212,255,.12);
+      --cyan:      #00d4ff;
+      --blue:      #0a6eff;
+      --green:     #00ff88;
+      --orange:    #ff8c42;
+      --red:       #ff3b5c;
+      --text:      #e8f4f8;
+      --muted:     #4a6274;
+      --label:     #7aabb8;
+      --font-head: 'Bebas Neue', sans-serif;
+      --font-data: 'JetBrains Mono', monospace;
+      --font-body: 'Barlow Condensed', sans-serif;
+    }
+
+    /* ─── RESET & BASE ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.4;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* ─── WAVE CANVAS ──────────────────────────────────────── */
+    #wave-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 200px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: .5;
+    }
+
+    /* ─── HEADER ───────────────────────────────────────────── */
+    .app-header {
+      position: relative;
+      z-index: 10;
+      padding: 24px 20px 0;
+      text-align: center;
+    }
+    .app-title {
+      font-family: var(--font-head);
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      letter-spacing: .04em;
+      background: linear-gradient(135deg, var(--cyan) 0%, #fff 60%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .app-subtitle {
+      font-family: var(--font-data);
+      font-size: .72rem;
+      color: var(--cyan);
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      opacity: .8;
+    }
+    .last-update {
+      font-family: var(--font-data);
+      font-size: .65rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .last-update span { color: var(--cyan); }
+
+    /* ─── BEACH SELECTOR ───────────────────────────────────── */
+    .beach-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6,9,15,.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      margin-top: 20px;
+    }
+    .beach-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 2px;
+    }
+    .beach-tabs::-webkit-scrollbar { display: none; }
+    .beach-tab {
+      flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--label);
+      font-family: var(--font-body);
+      font-size: .85rem;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .beach-tab:hover { border-color: var(--cyan); color: var(--cyan); }
+    .beach-tab.active {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      color: #000;
+      font-weight: 700;
+      box-shadow: 0 0 20px rgba(0,212,255,.3);
+    }
+    .beach-tab .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* ─── MAIN CONTENT ─────────────────────────────────────── */
+    .main { padding: 20px 16px 100px; max-width: 780px; margin: 0 auto; }
+
+    /* ─── HERO CARD ────────────────────────────────────────── */
+    .hero-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--status-color, var(--cyan));
+      transition: background .4s;
+    }
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .beach-name-big {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 7vw, 3.5rem);
+      line-height: 1;
+      color: var(--text);
+      letter-spacing: .03em;
+    }
+    .rating-gauge {
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .gauge-circle {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--status-color, var(--cyan));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.3);
+      box-shadow: 0 0 24px var(--status-color, var(--cyan)), inset 0 0 16px rgba(0,0,0,.5);
+      transition: all .4s;
+    }
+    .gauge-score {
+      font-family: var(--font-head);
+      font-size: 1.8rem;
+      line-height: 1;
+      color: var(--status-color, var(--cyan));
+    }
+    .gauge-label {
+      font-family: var(--font-data);
+      font-size: .5rem;
+      color: var(--muted);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 4px;
+      border: 1px solid var(--status-color, var(--cyan));
+      color: var(--status-color, var(--cyan));
+      font-family: var(--font-data);
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-top: 10px;
+      background: rgba(0,0,0,.3);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--status-color, var(--cyan));
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.7); }
+    }
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .mini-metric { text-align: center; }
+    .mini-value {
+      font-family: var(--font-data);
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .mini-unit {
+      font-size: .7rem;
+      color: var(--muted);
+      margin-left: 2px;
+    }
+    .mini-label {
+      font-size: .7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-top: 2px;
+    }
+
+    /* ─── SECTION GRID ─────────────────────────────────────── */
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 420px) {
+      .data-grid { grid-template-columns: 1fr; }
+    }
+    .data-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      transition: border-color .2s;
+    }
+    .data-card:hover { border-color: rgba(0,212,255,.3); }
+    .data-card.full-width { grid-column: 1 / -1; }
+    .card-title {
+      font-family: var(--font-data);
+      font-size: .6rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .card-icon { font-size: 1rem; opacity: .8; }
+
+    /* ─── METRIC ROW ───────────────────────────────────────── */
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .metric-row:last-child { border-bottom: none; }
+    .metric-key {
+      font-family: var(--font-body);
+      font-size: .8rem;
+      color: var(--label);
+      font-weight: 400;
+    }
+    .metric-val {
+      font-family: var(--font-data);
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .metric-val .unit {
+      font-size: .68rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    /* ─── WAVE BAR ─────────────────────────────────────────── */
+    .wave-visual {
+      margin-top: 12px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 40px;
+    }
+    .wave-bar {
+      flex: 1;
+      background: linear-gradient(to top, var(--cyan), var(--blue));
+      border-radius: 2px 2px 0 0;
+      opacity: .7;
+      transition: height .4s ease;
+    }
+
+    /* ─── COMPASS ──────────────────────────────────────────── */
+    .compass-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .compass {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .compass-needle {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 2px; height: 20px;
+      transform-origin: bottom center;
+      background: linear-gradient(to bottom, var(--red) 50%, var(--muted) 50%);
+      border-radius: 1px;
+      margin-left: -1px;
+      margin-top: -20px;
+      transition: transform .6s ease;
+    }
+    .compass-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 6px; height: 6px;
+      background: var(--cyan);
+      border-radius: 50%;
+      transform: translate(-50%,-50%);
+    }
+    .compass-labels {
+      font-family: var(--font-data);
+      font-size: .55rem;
+      color: var(--muted);
+    }
+    .compass-labels span { display: block; }
+
+    /* ─── UV BAR ───────────────────────────────────────────── */
+    .uv-bar-wrap { margin-top: 8px; }
+    .uv-track {
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #00e676, #ffeb3b, #ff9800, #f44336, #9c27b0);
+      position: relative;
+      margin-bottom: 4px;
+    }
+    .uv-marker {
+      position: absolute;
+      top: -3px;
+      width: 14px; height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      border: 2px solid #000;
+      transition: left .6s ease;
+    }
+    .uv-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-data);
+      font-size: .58rem;
+      color: var(--muted);
+    }
+
+    /* ─── DIGESA BADGE ─────────────────────────────────────── */
+    .digesa-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid;
+      margin-top: 8px;
+    }
+    .digesa-status.saludable {
+      border-color: var(--green);
+      background: rgba(0,255,136,.07);
+    }
+    .digesa-status.no-saludable {
+      border-color: var(--red);
+      background: rgba(255,59,92,.07);
+    }
+    .digesa-status.sin-datos {
+      border-color: var(--muted);
+      background: rgba(74,98,116,.07);
+    }
+    .digesa-icon { font-size: 1.6rem; }
+    .digesa-text { font-size: .78rem; font-weight: 500; }
+    .digesa-sub {
+      font-family: var(--font-data);
+      font-size: .6rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ─── FORECAST ─────────────────────────────────────────── */
+    .forecast-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+    .forecast-scroll::-webkit-scrollbar { display: none; }
+    .forecast-item {
+      flex-shrink: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: center;
+      min-width: 72px;
+    }
+    .forecast-time {
+      font-family: var(--font-data);
+      font-size: .6rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .forecast-wave {
+      font-family: var(--font-data);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--cyan);
+    }
+    .forecast-wind {
+      font-size: .72rem;
+      color: var(--label);
+      margin-top: 4px;
+    }
+    .forecast-quality {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin: 6px auto 0;
+    }
+
+    /* ─── TIPS ─────────────────────────────────────────────── */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .tip-item {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .tip-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .tip-text { font-size: .75rem; color: var(--label); line-height: 1.4; }
+    .tip-text strong { color: var(--text); display: block; font-size: .8rem; }
+
+    /* ─── LOADING ──────────────────────────────────────────── */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      transition: opacity .5s;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .loading-text {
+      font-family: var(--font-head);
+      font-size: 1.5rem;
+      color: var(--cyan);
+      letter-spacing: .2em;
+      margin-top: 20px;
+      animation: blink 1.2s infinite;
+    }
+    @keyframes blink { 50% { opacity: .4; } }
+    .loader {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 3px solid var(--surface2);
+      border-top-color: var(--cyan);
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── BOTTOM NAV ───────────────────────────────────────── */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(6,9,15,.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      padding: 10px 20px calc(10px + env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 200;
+    }
+    .bottom-meta {
+      font-family: var(--font-data);
+      font-size: .6rem;
+      color: var(--muted);
+    }
+    .refresh-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--cyan);
+      font-family: var(--font-data);
+      font-size: .65rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .refresh-btn:hover { background: var(--cyan); color: #000; }
+    .refresh-btn.spinning { animation: spin .6s linear infinite; }
+
+    /* ─── ERROR ─────────────────────────────────────────────── */
+    .error-msg {
+      font-family: var(--font-data);
+      font-size: .72rem;
+      color: var(--orange);
+      text-align: center;
+      padding: 12px;
+      border: 1px solid rgba(255,140,66,.2);
+      border-radius: 6px;
+      margin: 8px 0;
+    }
+
+    /* ─── DIRECTION ARROW ──────────────────────────────────── */
+    .dir-arrow {
+      display: inline-block;
+      font-size: 1rem;
+      transition: transform .4s;
+    }
+
+    /* ─── SWIMMER RISK ─────────────────────────────────────── */
+    .risk-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .risk-tag {
+      font-family: var(--font-data);
+      font-size: .62rem;
+      padding: 4px 10px;
+      border-radius: 3px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .risk-tag.ok { background: rgba(0,255,136,.15); color: var(--green); border: 1px solid rgba(0,255,136,.3); }
+    .risk-tag.warn { background: rgba(255,140,66,.15); color: var(--orange); border: 1px solid rgba(255,140,66,.3); }
+    .risk-tag.danger { background: rgba(255,59,92,.15); color: var(--red); border: 1px solid rgba(255,59,92,.3); }
+
+    /* ─── WIND ICON ────────────────────────────────────────── */
+    .wind-arrow {
+      display: inline-block;
+      width: 28px; height: 28px;
+      transition: transform .5s ease;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="loader"></div>
+  <div class="loading-text">CARGANDO DATOS</div>
+</div>
+
+<!-- Wave canvas -->
+<canvas id="wave-canvas"></canvas>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="app-title">OW LIMA</div>
+  <div class="app-subtitle">Open Water · Playas para Nadadores</div>
+  <div class="last-update" id="update-time">Actualizando...</div>
+</header>
+
+<!-- Beach nav -->
+<nav class="beach-nav">
+  <div class="beach-tabs" id="beach-tabs"></div>
+</nav>
+
+<!-- Main content -->
+<main class="main" id="main-content">
+  <!-- injected dynamically -->
+</main>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <div class="bottom-meta">
+    <div>Open-Meteo Marine API</div>
+    <div id="coords-display" style="color: var(--cyan); margin-top:2px">—</div>
+  </div>
+  <button class="refresh-btn" id="refresh-btn" onclick="refreshData()">↻ Actualizar</button>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════
+   BEACHES CONFIG
+════════════════════════════════════════════════ */
+const BEACHES = [
+  {
+    id: 'herradura',
+    name: 'La Herradura',
+    short: 'Herradura',
+    lat: -12.1547, lon: -77.0435,
+    district: 'Chorrillos',
+    notes: 'Playa semiabierta protegida, buenas condiciones para swimming',
+    digesa: 'saludable',
+  },
+  {
+    id: 'pescadores',
+    name: 'Pescadores',
+    short: 'Pescadores',
+    lat: -12.1670, lon: -77.0196,
+    district: 'Chorrillos',
+    notes: 'Zona tranquila, vigilada por la Marina',
+    digesa: 'saludable',
+  },
+  {
+    id: 'aguadulce',
+    name: 'Agua Dulce',
+    short: 'Agua Dulce',
+    lat: -12.1611, lon: -77.0234,
+    district: 'Chorrillos',
+    notes: 'Playa más concurrida, fácil acceso',
+    digesa: 'sin-datos',
+  },
+  {
+    id: 'yuyos',
+    name: 'Yuyos',
+    short: 'Yuyos',
+    lat: -12.1582, lon: -77.0210,
+    district: 'Chorrillos',
+    notes: 'Aguas algo rocosas, poca corriente costera',
+    digesa: 'no-saludable',
+  },
+  {
+    id: 'sombrillas',
+    name: 'Sombrillas',
+    short: 'Sombrillas',
+    lat: -12.1573, lon: -77.0201,
+    district: 'Chorrillos',
+    notes: 'Próxima a Agua Dulce, condiciones similares',
+    digesa: 'saludable',
+  },
+];
+
+/* ════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════ */
+let currentBeach = 0;
+let beachData = {}; // cached per beach id
+
+/* ════════════════════════════════════════════════
+   FETCH HELPERS
+════════════════════════════════════════════════ */
+async function fetchBeachData(beach) {
+  const { lat, lon } = beach;
+
+  const marineURL = `https://marine-api.open-meteo.com/v1/marine?` +
+    `latitude=${lat}&longitude=${lon}` +
+    `&current=wave_height,wave_direction,wave_period,wind_wave_height,wind_wave_period,` +
+    `swell_wave_height,swell_wave_direction,swell_wave_period,sea_surface_temperature` +
+    `&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,sea_surface_temperature` +
+    `&timezone=America%2FLima&forecast_days=1`;
+
+  const weatherURL = `https://api.open-meteo.com/v1/forecast?` +
+    `latitude=${lat}&longitude=${lon}` +
+    `&current=temperature_2m,wind_speed_10m,wind_direction_10m,uv_index,weather_code` +
+    `&hourly=wind_speed_10m,wind_direction_10m,uv_index` +
+    `&timezone=America%2FLima&forecast_days=1`;
+
+  const [marineRes, weatherRes] = await Promise.all([
+    fetch(marineURL),
+    fetch(weatherURL)
+  ]);
+
+  const marine = await marineRes.json();
+  const weather = await weatherRes.json();
+
+  return { marine, weather };
+}
+
+/* ════════════════════════════════════════════════
+   CALCULATIONS
+════════════════════════════════════════════════ */
+function calcSwimmerScore(data) {
+  const { marine, weather } = data;
+  const wh = marine.current?.wave_height ?? 1.5;
+  const wp = marine.current?.wave_period ?? 8;
+  const wind = weather.current?.wind_speed_10m ?? 15;
+  const uv = weather.current?.uv_index ?? 5;
+
+  let score = 100;
+
+  // Wave height penalties
+  if (wh > 2.5) score -= 50;
+  else if (wh > 1.8) score -= 30;
+  else if (wh > 1.2) score -= 15;
+  else if (wh > 0.7) score -= 5;
+
+  // Wave period (shorter = choppier)
+  if (wp < 6) score -= 20;
+  else if (wp < 8) score -= 10;
+
+  // Wind
+  if (wind > 30) score -= 25;
+  else if (wind > 20) score -= 15;
+  else if (wind > 12) score -= 5;
+
+  // UV extreme
+  if (uv > 11) score -= 10;
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function getStatusFromScore(score) {
+  if (score >= 75) return { label: 'APTO PARA NADAR', color: 'var(--green)', key: 'green' };
+  if (score >= 50) return { label: 'PRECAUCIÓN', color: 'var(--orange)', key: 'orange' };
+  return { label: 'NO RECOMENDADO', color: 'var(--red)', key: 'red' };
+}
+
+function degToCompass(deg) {
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+function degToArrow(deg) {
+  return `<span class="dir-arrow" style="transform:rotate(${deg}deg)">↑</span>`;
+}
+
+function uvCategory(uv) {
+  if (uv <= 2) return { label: 'Bajo', color: '#00e676' };
+  if (uv <= 5) return { label: 'Moderado', color: '#ffeb3b' };
+  if (uv <= 7) return { label: 'Alto', color: '#ff9800' };
+  if (uv <= 10) return { label: 'Muy Alto', color: '#f44336' };
+  return { label: 'Extremo', color: '#9c27b0' };
+}
+
+function waveDesc(h) {
+  if (h < 0.3) return 'Plana';
+  if (h < 0.6) return 'Calma';
+  if (h < 1.0) return 'Ligera';
+  if (h < 1.5) return 'Moderada';
+  if (h < 2.0) return 'Importante';
+  if (h < 3.0) return 'Fuerte';
+  return 'Muy Fuerte';
+}
+
+function windDesc(w) {
+  if (w < 5) return 'Calma';
+  if (w < 15) return 'Brisa suave';
+  if (w < 25) return 'Brisa moderada';
+  if (w < 35) return 'Brisa fresca';
+  return 'Viento fuerte';
+}
+
+function getRisks(data) {
+  const { marine, weather } = data;
+  const wh = marine.current?.wave_height ?? 0;
+  const wind = weather.current?.wind_speed_10m ?? 0;
+  const uv = weather.current?.uv_index ?? 0;
+  const swell = marine.current?.swell_wave_height ?? 0;
+  const risks = [];
+
+  if (wh < 1.0) risks.push({ label: 'Oleaje OK', cls: 'ok' });
+  else if (wh < 1.8) risks.push({ label: `Oleaje ${wh.toFixed(1)}m`, cls: 'warn' });
+  else risks.push({ label: `Oleaje ALTO ${wh.toFixed(1)}m`, cls: 'danger' });
+
+  if (wind < 15) risks.push({ label: 'Viento OK', cls: 'ok' });
+  else if (wind < 25) risks.push({ label: `Viento ${Math.round(wind)} km/h`, cls: 'warn' });
+  else risks.push({ label: `Viento FUERTE`, cls: 'danger' });
+
+  if (uv <= 5) risks.push({ label: `UV ${uv} Moderado`, cls: 'ok' });
+  else if (uv <= 9) risks.push({ label: `UV ${uv} Alto`, cls: 'warn' });
+  else risks.push({ label: `UV ${uv} EXTREMO`, cls: 'danger' });
+
+  if (swell < 1.0) risks.push({ label: 'Swell OK', cls: 'ok' });
+  else if (swell < 2.0) risks.push({ label: `Swell ${swell.toFixed(1)}m`, cls: 'warn' });
+  else risks.push({ label: `Swell ALTO`, cls: 'danger' });
+
+  return risks;
+}
+
+/* ════════════════════════════════════════════════
+   DIGESA MOCK
+════════════════════════════════════════════════ */
+const DIGESA_INFO = {
+  'saludable': {
+    icon: '🟢',
+    label: 'Saludable — DIGESA',
+    sub: 'Agua apta · Arena limpia · SSHH disponibles',
+    cls: 'saludable',
+  },
+  'no-saludable': {
+    icon: '🔴',
+    label: 'No Saludable — DIGESA',
+    sub: 'No cumple criterios microbiológicos o de limpieza',
+    cls: 'no-saludable',
+  },
+  'sin-datos': {
+    icon: '⚪',
+    label: 'Sin datos recientes — DIGESA',
+    sub: 'Verificar en veranosaludable.minsa.gob.pe',
+    cls: 'sin-datos',
+  },
+};
+
+/* ════════════════════════════════════════════════
+   RENDER
+════════════════════════════════════════════════ */
+function buildBeachTabs() {
+  const container = document.getElementById('beach-tabs');
+  container.innerHTML = BEACHES.map((b, i) => `
+    <button class="beach-tab ${i === currentBeach ? 'active' : ''}"
+      onclick="selectBeach(${i})">
+      <span class="dot" style="background: ${i === currentBeach ? '#000' : 'var(--muted)'}"></span>
+      ${b.short}
+    </button>
+  `).join('');
+}
+
+function buildContent(beach, data) {
+  const score = calcSwimmerScore(data);
+  const status = getStatusFromScore(score);
+  const m = data.marine.current ?? {};
+  const w = data.weather.current ?? {};
+  const uv = uvCategory(w.uv_index ?? 0);
+  const digesa = DIGESA_INFO[beach.digesa];
+  const risks = getRisks(data);
+
+  // hourly forecast (next 12h)
+  const hourly = data.marine.hourly ?? {};
+  const wHourly = data.weather.hourly ?? {};
+  const now = new Date();
+  const currentHour = now.getHours();
+  const forecastHours = Array.from({length: 12}, (_,i) => (currentHour + i) % 24);
+
+  const forecastItems = forecastHours.map(h => {
+    const waveH = hourly.wave_height?.[h] ?? 0;
+    const windS = wHourly.wind_speed_10m?.[h] ?? 0;
+    const q = waveH < 1 && windS < 15 ? 'var(--green)' :
+              waveH < 1.8 && windS < 25 ? 'var(--orange)' : 'var(--red)';
+    return `
+      <div class="forecast-item">
+        <div class="forecast-time">${String(h).padStart(2,'0')}:00</div>
+        <div class="forecast-wave">${waveH.toFixed(1)}<span style="font-size:.6rem;color:var(--muted)">m</span></div>
+        <div class="forecast-wind">${degToArrow(wHourly.wind_direction_10m?.[h] ?? 0)} ${Math.round(windS)}</div>
+        <div class="forecast-quality" style="background:${q}"></div>
+      </div>`;
+  }).join('');
+
+  // Tips based on conditions
+  const tips = buildTips(m, w, score);
+
+  return `
+  <!-- HERO -->
+  <div class="hero-card" style="--status-color: ${status.color}">
+    <div class="hero-top">
+      <div>
+        <div class="beach-name-big">${beach.name}</div>
+        <div style="font-size:.78rem; color:var(--muted); margin-top:4px">${beach.district} · Lima</div>
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          ${status.label}
+        </div>
+      </div>
+      <div class="rating-gauge">
+        <div class="gauge-circle" style="--status-color:${status.color}">
+          <div class="gauge-score" style="color:${status.color}">${score}</div>
+          <div class="gauge-label">SCORE</div>
+        </div>
+        <div style="font-family:var(--font-data);font-size:.55rem;color:var(--muted);margin-top:6px;text-align:center">NADADOR</div>
+      </div>
+    </div>
+
+    <div class="risk-row">
+      ${risks.map(r => `<span class="risk-tag ${r.cls}">${r.label}</span>`).join('')}
+    </div>
+
+    <div class="hero-metrics">
+      <div class="mini-metric">
+        <div class="mini-value">${(m.wave_height ?? 0).toFixed(2)}<span class="mini-unit">m</span></div>
+        <div class="mini-label">Oleaje</div>
+      </div>
+      <div class="mini-metric">
+        <div class="mini-value">${Math.round(w.wind_speed_10m ?? 0)}<span class="mini-unit">km/h</span></div>
+        <div class="mini-label">Viento</div>
+      </div>
+      <div class="mini-metric">
+        <div class="mini-value" style="color:${uv.color}">${(w.uv_index ?? 0).toFixed(1)}</div>
+        <div class="mini-label">Índice UV</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OLEAJE & SWELL -->
+  <div class="data-grid">
+    <div class="data-card">
+      <div class="card-title"><span class="card-icon">🌊</span> Oleaje</div>
+      <div class="metric-row">
+        <span class="metric-key">Altura</span>
+        <span class="metric-val">${(m.wave_height ?? 0).toFixed(2)} <span class="unit">m</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Descripción</span>
+        <span class="metric-val">${waveDesc(m.wave_height ?? 0)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Período</span>
+        <span class="metric-val">${(m.wave_period ?? 0).toFixed(1)} <span class="unit">s</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Dirección</span>
+        <span class="metric-val">${degToCompass(m.wave_direction ?? 0)} ${degToArrow(m.wave_direction ?? 0)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Grados</span>
+        <span class="metric-val">${Math.round(m.wave_direction ?? 0)}<span class="unit">°</span></span>
+      </div>
+    </div>
+
+    <div class="data-card">
+      <div class="card-title"><span class="card-icon">〰️</span> Swell</div>
+      <div class="metric-row">
+        <span class="metric-key">Altura</span>
+        <span class="metric-val">${(m.swell_wave_height ?? 0).toFixed(2)} <span class="unit">m</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Período</span>
+        <span class="metric-val">${(m.swell_wave_period ?? 0).toFixed(1)} <span class="unit">s</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Dirección</span>
+        <span class="metric-val">${degToCompass(m.swell_wave_direction ?? 0)} ${degToArrow(m.swell_wave_direction ?? 0)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Ola viento</span>
+        <span class="metric-val">${(m.wind_wave_height ?? 0).toFixed(2)} <span class="unit">m</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Período viento</span>
+        <span class="metric-val">${(m.wind_wave_period ?? 0).toFixed(1)} <span class="unit">s</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIENTO & AGUA -->
+  <div class="data-grid">
+    <div class="data-card">
+      <div class="card-title"><span class="card-icon">💨</span> Viento</div>
+      <div class="compass-wrap">
+        <div class="compass">
+          <div class="compass-needle" style="transform: translateX(-50%) rotate(${(w.wind_direction_10m ?? 0) - 180}deg); transform-origin: 50% 100%; position:absolute; bottom:50%; left:50%"></div>
+          <div class="compass-center"></div>
+        </div>
+        <div class="compass-labels">
+          <span style="font-size:.8rem;color:var(--text);font-family:var(--font-data);font-weight:600">${Math.round(w.wind_speed_10m ?? 0)} <span style="color:var(--muted);font-weight:300">km/h</span></span>
+          <span style="margin-top:4px">${degToCompass(w.wind_direction_10m ?? 0)} · ${Math.round(w.wind_direction_10m ?? 0)}°</span>
+          <span style="margin-top:2px;color:var(--label)">${windDesc(w.wind_speed_10m ?? 0)}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="data-card">
+      <div class="card-title"><span class="card-icon">🌡️</span> Agua & Aire</div>
+      <div class="metric-row">
+        <span class="metric-key">Temp. agua</span>
+        <span class="metric-val" style="color:var(--cyan)">${(m.sea_surface_temperature ?? 0).toFixed(1)} <span class="unit">°C</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Temp. aire</span>
+        <span class="metric-val">${(w.temperature_2m ?? 0).toFixed(1)} <span class="unit">°C</span></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-key">Sensación</span>
+        <span class="metric-val">${getThermoRec(m.sea_surface_temperature ?? 0)}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- UV -->
+  <div class="data-card" style="margin-bottom:12px">
+    <div class="card-title"><span class="card-icon">☀️</span> Radiación UV</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-family:var(--font-data);font-size:2rem;font-weight:600;color:${uv.color}">${(w.uv_index ?? 0).toFixed(1)}</span>
+      <span style="font-family:var(--font-data);font-size:.8rem;color:${uv.color};border:1px solid ${uv.color};padding:4px 12px;border-radius:4px">${uv.label}</span>
+    </div>
+    <div class="uv-bar-wrap">
+      <div class="uv-track">
+        <div class="uv-marker" style="left:${Math.min(98, (w.uv_index ?? 0) / 12 * 100)}%"></div>
+      </div>
+      <div class="uv-labels"><span>0</span><span>3</span><span>6</span><span>8</span><span>10</span><span>12+</span></div>
+    </div>
+    <div style="font-size:.75rem;color:var(--muted);margin-top:10px">${uvAdvice(w.uv_index ?? 0)}</div>
+  </div>
+
+  <!-- DIGESA -->
+  <div class="data-card" style="margin-bottom:12px">
+    <div class="card-title"><span class="card-icon">🏥</span> Calidad Sanitaria · DIGESA</div>
+    <div class="digesa-status ${digesa.cls}">
+      <div class="digesa-icon">${digesa.icon}</div>
+      <div>
+        <div class="digesa-text" style="color: ${digesa.cls === 'saludable' ? 'var(--green)' : digesa.cls === 'no-saludable' ? 'var(--red)' : 'var(--muted)'}">${digesa.label}</div>
+        <div class="digesa-sub">${digesa.sub}</div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-data);font-size:.6rem;color:var(--muted);margin-top:8px">
+      Fuente: veranosaludable.minsa.gob.pe · Actualización semanal
+    </div>
+  </div>
+
+  <!-- FORECAST -->
+  <div class="data-card full-width" style="margin-bottom:12px">
+    <div class="card-title"><span class="card-icon">📊</span> Pronóstico 12 horas</div>
+    <div class="forecast-scroll">${forecastItems}</div>
+    <div style="display:flex;gap:16px;margin-top:10px;font-family:var(--font-data);font-size:.6rem;color:var(--muted)">
+      <span><span style="color:var(--green)">●</span> Óptimo</span>
+      <span><span style="color:var(--orange)">●</span> Precaución</span>
+      <span><span style="color:var(--red)">●</span> No recomendado</span>
+      <span>· Altura ola en metros / Viento km/h</span>
+    </div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="data-card full-width" style="margin-bottom:12px">
+    <div class="card-title"><span class="card-icon">🏊</span> Recomendaciones Nadador</div>
+    <div class="tips-grid">${tips}</div>
+  </div>
+
+  <!-- BEACH NOTES -->
+  <div style="font-family:var(--font-data);font-size:.65rem;color:var(--muted);text-align:center;padding:8px 0 4px">
+    📍 ${beach.notes} · ${beach.lat.toFixed(4)}, ${beach.lon.toFixed(4)}
+  </div>
+  `;
+}
+
+function getThermoRec(temp) {
+  if (temp < 18) return '🥶 Frío — usar traje';
+  if (temp < 21) return '🌊 Fresco — opcional';
+  if (temp < 24) return '✅ Agradable';
+  return '☀️ Cálido';
+}
+
+function uvAdvice(uv) {
+  if (uv <= 2) return 'Sin protección especial necesaria. Condiciones seguras.';
+  if (uv <= 5) return 'Usa protector solar FPS 30+ y lentes UV400.';
+  if (uv <= 7) return 'Protector FPS 50+, lentes UV400 y gorra. Evita 10am-2pm.';
+  if (uv <= 10) return '⚠️ Protector FPS 50+ obligatorio. Limita exposición directa.';
+  return '🚨 UV Extremo. Evita exposición prolongada. Protección máxima obligatoria.';
+}
+
+function buildTips(m, w, score) {
+  const tips = [];
+  const wh = m.wave_height ?? 0;
+  const wp = m.wave_period ?? 0;
+  const wind = w.wind_speed_10m ?? 0;
+  const uv = w.uv_index ?? 0;
+  const temp = m.sea_surface_temperature ?? 0;
+
+  // Wetsuit
+  if (temp < 20) tips.push({ icon: '🤿', title: 'Traje de neopreno', body: `${temp.toFixed(1)}°C — Se recomienda traje 3mm` });
+  else tips.push({ icon: '🩱', title: 'Temperatura agradable', body: `${temp.toFixed(1)}°C — Puede nadar sin traje` });
+
+  // Waves
+  if (wh > 1.5) tips.push({ icon: '⚠️', title: 'Oleaje elevado', body: `${wh.toFixed(2)}m — Técnica de entrada por romp.` });
+  else if (wh < 0.5) tips.push({ icon: '✅', title: 'Condición ideal', body: `${wh.toFixed(2)}m — Excelente para entrenamiento` });
+  else tips.push({ icon: '🌊', title: 'Oleaje moderado', body: `${wh.toFixed(2)}m — Apto con experiencia media` });
+
+  // Period
+  if (wp > 0 && wp < 7) tips.push({ icon: '💢', title: 'Período corto', body: `${wp.toFixed(1)}s — Olas irregulares, más esfuerzo` });
+  else if (wp >= 7) tips.push({ icon: '〰️', title: 'Período largo', body: `${wp.toFixed(1)}s — Olas regulares, buen ritmo` });
+
+  // Wind
+  if (wind > 20) tips.push({ icon: '💨', title: 'Viento significativo', body: `${Math.round(wind)} km/h — Deriva lateral posible` });
+  else tips.push({ icon: '🏁', title: 'Viento favorable', body: `${Math.round(wind)} km/h — Sin impacto significativo` });
+
+  // UV
+  if (uv > 8) tips.push({ icon: '🧴', title: 'UV muy alto', body: `${uv.toFixed(1)} — FPS 50+ resistente al agua` });
+
+  // Score
+  if (score < 50) tips.push({ icon: '🚨', title: 'Condiciones adversas', body: 'Solo nadadores avanzados o abstenerse' });
+  else if (score < 75) tips.push({ icon: '👥', title: 'Nadar en grupo', body: 'Condiciones variables — no nadar solo' });
+  else tips.push({ icon: '🏊', title: 'Buen día de entrenamiento', body: 'Condiciones apropiadas para todos los niveles' });
+
+  return tips.slice(0, 6).map(t => `
+    <div class="tip-item">
+      <div class="tip-icon">${t.icon}</div>
+      <div class="tip-text"><strong>${t.title}</strong>${t.body}</div>
+    </div>`).join('');
+}
+
+/* ════════════════════════════════════════════════
+   BEACH SELECTION
+════════════════════════════════════════════════ */
+async function selectBeach(index) {
+  currentBeach = index;
+  buildBeachTabs();
+
+  const beach = BEACHES[index];
+  document.getElementById('coords-display').textContent =
+    `${beach.lat.toFixed(4)}, ${beach.lon.toFixed(4)}`;
+
+  const main = document.getElementById('main-content');
+  main.style.opacity = '0';
+  main.style.transform = 'translateY(8px)';
+  main.style.transition = 'none';
+
+  if (!beachData[beach.id]) {
+    main.innerHTML = `<div style="text-align:center;padding:40px;font-family:var(--font-data);color:var(--muted)">
+      <div class="loader" style="margin:0 auto 16px"></div>Cargando ${beach.name}...
+    </div>`;
+  }
+
+  try {
+    if (!beachData[beach.id]) {
+      beachData[beach.id] = await fetchBeachData(beach);
+    }
+    main.innerHTML = buildContent(beach, beachData[beach.id]);
+  } catch (err) {
+    main.innerHTML = `<div class="error-msg">⚠️ Error cargando datos para ${beach.name}.<br>Verifica tu conexión.</div>`;
+    console.error(err);
+  }
+
+  requestAnimationFrame(() => {
+    main.style.transition = 'opacity .3s ease, transform .3s ease';
+    main.style.opacity = '1';
+    main.style.transform = 'translateY(0)';
+  });
+}
+
+/* ════════════════════════════════════════════════
+   REFRESH
+════════════════════════════════════════════════ */
+async function refreshData() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  beachData = {};
+  await selectBeach(currentBeach);
+  updateTimestamp();
+  btn.classList.remove('spinning');
+}
+
+function updateTimestamp() {
+  const el = document.getElementById('update-time');
+  if (el) {
+    const now = new Date();
+    el.innerHTML = `Actualizado: <span>${now.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'})}</span>`;
+  }
+}
+
+/* ════════════════════════════════════════════════
+   WAVE CANVAS ANIMATION
+════════════════════════════════════════════════ */
+function initWaveCanvas() {
+  const canvas = document.getElementById('wave-canvas');
+  const ctx = canvas.getContext('2d');
+  let t = 0;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = 200;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const waves = [
+      { amp: 20, freq: 0.012, speed: 0.02, y: 120, color: 'rgba(0,212,255,0.08)' },
+      { amp: 14, freq: 0.018, speed: 0.03, y: 140, color: 'rgba(10,110,255,0.06)' },
+      { amp: 10, freq: 0.025, speed: 0.015, y: 100, color: 'rgba(0,212,255,0.04)' },
+    ];
+    waves.forEach(wave => {
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height);
+      for (let x = 0; x <= canvas.width; x++) {
+        const y = wave.y + Math.sin(x * wave.freq + t * wave.speed * 60) * wave.amp;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.closePath();
+      ctx.fillStyle = wave.color;
+      ctx.fill();
+    });
+    t += 0.016;
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════ */
+async function init() {
+  initWaveCanvas();
+  buildBeachTabs();
+
+  try {
+    await selectBeach(0);
+    updateTimestamp();
+  } catch(e) {
+    console.error(e);
+  }
+
+  const overlay = document.getElementById('loading');
+  overlay.classList.add('hidden');
+  setTimeout(() => overlay.remove(), 600);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+
+/* ════════════════════════════════════════════════
+   SERVICE WORKER REGISTRATION
+════════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
