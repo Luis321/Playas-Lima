@@ -17,6 +17,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;600&family=Barlow+Condensed:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
   <style>
     /* ─── TOKENS ───────────────────────────────────────────── */
     :root {
@@ -695,14 +699,82 @@
       border-color: var(--cyan);
       color: var(--cyan);
     }
-    .windy-frame {
+    .beach-map-container {
       width: 100%;
       height: 380px;
-      border: none;
-      display: block;
+      position: relative;
     }
     @media (max-width: 480px) {
-      .windy-frame { height: 300px; }
+      .beach-map-container { height: 300px; }
+    }
+    /* Leaflet overrides para tema oscuro */
+    .leaflet-container { background: #06090f; font-family: var(--font-body); }
+    .leaflet-control-zoom a {
+      background: #111927 !important;
+      border-color: rgba(0,212,255,.2) !important;
+      color: #7aabb8 !important;
+      font-size: 16px !important;
+    }
+    .leaflet-control-zoom a:hover { background: #0c1220 !important; color: #00d4ff !important; }
+    .leaflet-bar { border: 1px solid rgba(0,212,255,.2) !important; box-shadow: none !important; }
+    .leaflet-control-attribution {
+      background: rgba(6,9,15,.75) !important;
+      color: #4a6274 !important;
+      font-size: .55rem !important;
+    }
+    .leaflet-control-attribution a { color: #4a6274 !important; }
+    /* Marcadores de playa */
+    .beach-pin {
+      background: rgba(6,9,15,.88);
+      border: 2px solid var(--pin-color, #4a6274);
+      border-radius: 8px;
+      padding: 5px 8px;
+      min-width: 74px;
+      text-align: center;
+      backdrop-filter: blur(6px);
+      cursor: pointer;
+      transition: box-shadow .2s, border-color .2s;
+      position: relative;
+    }
+    .beach-pin::after {
+      content: '';
+      position: absolute;
+      bottom: -7px; left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--pin-color, #4a6274);
+    }
+    .beach-pin.selected {
+      box-shadow: 0 0 0 2px var(--pin-color, #4a6274), 0 0 18px var(--pin-color, #4a6274);
+    }
+    .pin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .pin-name {
+      font-family: var(--font-data);
+      font-size: .5rem;
+      font-weight: 600;
+      color: var(--pin-color, #e8f4f8);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      white-space: nowrap;
+    }
+    .pin-wave {
+      font-family: var(--font-data);
+      font-size: .7rem;
+      font-weight: 600;
+      color: #e8f4f8;
+    }
+    .pin-arrow {
+      color: var(--pin-color, #7aabb8);
+      font-size: .95rem;
+      line-height: 1;
+      margin-top: 1px;
+      display: inline-block;
+      transition: transform .4s ease;
     }
   </style>
 </head>
@@ -739,19 +811,10 @@
       </div>
     </div>
     <div class="map-overlay-btns">
-      <button class="map-overlay-btn active" onclick="setMapOverlay('waves')" id="btn-waves">🌊 Olas</button>
-      <button class="map-overlay-btn" onclick="setMapOverlay('swell1')" id="btn-swell1">〰 Marejada</button>
-      <button class="map-overlay-btn" onclick="setMapOverlay('wind')" id="btn-wind">💨 Viento</button>
-      <button class="map-overlay-btn" onclick="setMapOverlay('satellite')" id="btn-satellite">🛰 Satélite</button>
+      <button class="map-overlay-btn" onclick="setMapLayer('dark')" id="btn-dark">🗺 Mapa</button>
+      <button class="map-overlay-btn active" onclick="setMapLayer('satellite')" id="btn-satellite">🛰 Satélite</button>
     </div>
-    <iframe
-      id="windy-iframe"
-      class="windy-frame"
-      src=""
-      loading="lazy"
-      allow="fullscreen"
-      title="Mapa de olas en vivo - Windy"
-    ></iframe>
+    <div id="beach-map" class="beach-map-container"></div>
   </div>
 </section>
 
@@ -1267,39 +1330,112 @@ function buildTips(m, w, score) {
 }
 
 /* ════════════════════════════════════════════════
-   WAVE MAP
+   WAVE MAP (LEAFLET)
 ════════════════════════════════════════════════ */
-let currentMapOverlay = 'waves';
+let leafletMap = null;
+let leafletMarkers = {};
+let currentTileLayer = null;
+let currentLayerKey = 'satellite';
 
-function buildWindyURL(beach, overlay) {
-  const { lat, lon } = beach;
-  return `https://embed.windy.com/embed2.html?` +
-    `lat=${lat}&lon=${lon}` +
-    `&detailLat=${lat}&detailLon=${lon}` +
-    `&zoom=11&level=surface` +
-    `&overlay=${overlay}` +
-    `&product=ecmwf` +
-    `&menu=false&message=true&marker=true` +
-    `&calendar=now&pressure=false` +
-    `&type=map&location=coordinates` +
-    `&detail=false` +
-    `&metricWind=default&metricTemp=default&radarRange=-1`;
-}
-
-function updateWaveMap(beach) {
-  const iframe = document.getElementById('windy-iframe');
-  if (iframe) {
-    iframe.src = buildWindyURL(beach, currentMapOverlay);
+const TILE_DEFS = {
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    opts: { attribution: '© Esri, Maxar, Earthstar Geographics', maxZoom: 19 }
+  },
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    opts: { attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 19, subdomains: 'abcd' }
   }
+};
+
+function pinScoreColor(score) {
+  if (score === null || score === undefined) return '#4a6274';
+  if (score >= 75) return '#00ff88';
+  if (score >= 50) return '#ff8c42';
+  return '#ff3b5c';
 }
 
-function setMapOverlay(overlay) {
-  currentMapOverlay = overlay;
-  ['waves', 'swell1', 'wind', 'satellite'].forEach(o => {
-    const btn = document.getElementById(`btn-${o}`);
-    if (btn) btn.classList.toggle('active', o === overlay);
+function buildPinHTML(beach, data, isSelected) {
+  let waveH = '—';
+  let waveDir = 0;
+  let score = null;
+
+  if (data && data.marine && data.weather) {
+    const m = data.marine.current;
+    if (m) {
+      if (m.wave_height != null) waveH = m.wave_height.toFixed(1) + 'm';
+      if (m.wave_direction != null) waveDir = m.wave_direction;
+    }
+    score = calcSwimmerScore(data);
+  }
+
+  const color = pinScoreColor(score);
+  const selectedClass = isSelected ? 'selected' : '';
+
+  return `<div class="beach-pin ${selectedClass}" style="--pin-color:${color}">
+    <div class="pin-header">
+      <span class="pin-name">${beach.short}</span>
+      <span class="pin-wave">${waveH}</span>
+    </div>
+    <span class="pin-arrow" style="transform:rotate(${waveDir}deg)">↑</span>
+  </div>`;
+}
+
+function initLeafletMap() {
+  if (leafletMap) return;
+
+  leafletMap = L.map('beach-map', {
+    center: [-12.158, -77.032],
+    zoom: 13,
+    zoomControl: true,
+    attributionControl: true
   });
-  updateWaveMap(BEACHES[currentBeach]);
+
+  currentTileLayer = L.tileLayer(TILE_DEFS.satellite.url, TILE_DEFS.satellite.opts)
+    .addTo(leafletMap);
+
+  BEACHES.forEach((beach, i) => {
+    const icon = L.divIcon({
+      className: '',
+      html: buildPinHTML(beach, beachData[beach.id] || null, i === currentBeach),
+      iconSize: [82, 54],
+      iconAnchor: [41, 61]
+    });
+    const marker = L.marker([beach.lat, beach.lon], { icon })
+      .addTo(leafletMap)
+      .on('click', () => selectBeach(i));
+    leafletMarkers[beach.id] = marker;
+  });
+}
+
+function refreshMapMarkers() {
+  if (!leafletMap) return;
+  BEACHES.forEach((beach, i) => {
+    const marker = leafletMarkers[beach.id];
+    if (!marker) return;
+    const icon = L.divIcon({
+      className: '',
+      html: buildPinHTML(beach, beachData[beach.id] || null, i === currentBeach),
+      iconSize: [82, 54],
+      iconAnchor: [41, 61]
+    });
+    marker.setIcon(icon);
+  });
+}
+
+function updateLeafletMap(beach) {
+  if (!leafletMap) return;
+  leafletMap.setView([beach.lat, beach.lon], 14, { animate: true, duration: 0.6 });
+  refreshMapMarkers();
+}
+
+function setMapLayer(layer) {
+  currentLayerKey = layer;
+  ['satellite', 'dark'].forEach(l => {
+    document.getElementById(`btn-${l}`)?.classList.toggle('active', l === layer);
+  });
+  if (currentTileLayer && leafletMap) leafletMap.removeLayer(currentTileLayer);
+  currentTileLayer = L.tileLayer(TILE_DEFS[layer].url, TILE_DEFS[layer].opts).addTo(leafletMap);
 }
 
 /* ════════════════════════════════════════════════
@@ -1308,7 +1444,7 @@ function setMapOverlay(overlay) {
 async function selectBeach(index) {
   currentBeach = index;
   buildBeachTabs();
-  updateWaveMap(BEACHES[index]);
+  updateLeafletMap(BEACHES[index]);
 
   const beach = BEACHES[index];
   document.getElementById('coords-display').textContent =
@@ -1330,6 +1466,7 @@ async function selectBeach(index) {
       beachData[beach.id] = await fetchBeachData(beach);
     }
     main.innerHTML = buildContent(beach, beachData[beach.id]);
+    refreshMapMarkers();
   } catch (err) {
     main.innerHTML = `<div class="error-msg">⚠️ Error cargando datos para ${beach.name}.<br>Verifica tu conexión.</div>`;
     console.error(err);
@@ -1407,6 +1544,7 @@ function initWaveCanvas() {
 ════════════════════════════════════════════════ */
 async function init() {
   initWaveCanvas();
+  initLeafletMap();
   buildBeachTabs();
 
   try {
