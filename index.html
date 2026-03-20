@@ -268,6 +268,38 @@
       margin-top: 2px;
     }
 
+    /* ─── HERO + TIPS ROW ──────────────────────────────────── */
+    .hero-tips-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: start;
+    }
+    @media (max-width: 580px) {
+      .hero-tips-row { grid-template-columns: 1fr; }
+    }
+    .hero-card.compact { padding: 14px; }
+    .hero-card.compact .beach-name-big {
+      font-size: clamp(1.1rem, 4vw, 1.65rem);
+    }
+    .hero-card.compact .gauge-circle {
+      width: 60px; height: 60px;
+    }
+    .hero-card.compact .gauge-score { font-size: 1.3rem; }
+    .hero-card.compact .status-badge {
+      font-size: .62rem;
+      padding: 4px 10px;
+      margin-top: 7px;
+    }
+    .hero-card.compact .hero-metrics {
+      margin-top: 10px;
+      padding-top: 10px;
+      gap: 6px;
+    }
+    .hero-card.compact .mini-value { font-size: 1rem; }
+    .hero-card.compact .mini-label { font-size: .62rem; }
+
     /* ─── SECTION GRID ─────────────────────────────────────── */
     .data-grid {
       display: grid;
@@ -1093,12 +1125,15 @@ function buildContent(beach, data) {
   const tips = buildTips(m, w, score);
 
   return `
+  <!-- HERO + TIPS ROW -->
+  <div class="hero-tips-row">
+
   <!-- HERO -->
-  <div class="hero-card" style="--status-color: ${status.color}">
+  <div class="hero-card compact" style="--status-color: ${status.color}">
     <div class="hero-top">
       <div>
         <div class="beach-name-big">${beach.name}</div>
-        <div style="font-size:.78rem; color:var(--muted); margin-top:4px">${beach.district} · Lima</div>
+        <div style="font-size:.72rem; color:var(--muted); margin-top:3px">${beach.district} · Lima</div>
         <div class="status-badge">
           <span class="status-dot"></span>
           ${status.label}
@@ -1109,7 +1144,7 @@ function buildContent(beach, data) {
           <div class="gauge-score" style="color:${status.color}">${score}</div>
           <div class="gauge-label">SCORE</div>
         </div>
-        <div style="font-family:var(--font-data);font-size:.55rem;color:var(--muted);margin-top:6px;text-align:center">NADADOR</div>
+        <div style="font-family:var(--font-data);font-size:.5rem;color:var(--muted);margin-top:5px;text-align:center">NADADOR</div>
       </div>
     </div>
 
@@ -1132,6 +1167,14 @@ function buildContent(beach, data) {
       </div>
     </div>
   </div>
+
+  <!-- TIPS (junto al hero) -->
+  <div class="data-card" style="margin-bottom:0">
+    <div class="card-title"><span class="card-icon">🏊</span> Recomendaciones Nadador</div>
+    <div class="tips-grid">${tips}</div>
+  </div>
+
+  </div><!-- /hero-tips-row -->
 
   <!-- OLEAJE & SWELL -->
   <div class="data-grid">
@@ -1259,12 +1302,6 @@ function buildContent(beach, data) {
       <span><span style="color:var(--red)">●</span> No recomendado</span>
       <span>· Altura ola en metros / Viento km/h</span>
     </div>
-  </div>
-
-  <!-- TIPS -->
-  <div class="data-card full-width" style="margin-bottom:12px">
-    <div class="card-title"><span class="card-icon">🏊</span> Recomendaciones Nadador</div>
-    <div class="tips-grid">${tips}</div>
   </div>
 
   <!-- BEACH NOTES -->
