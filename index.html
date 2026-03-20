@@ -882,7 +882,7 @@ const BEACHES = [
     id: 'herradura',
     name: 'La Herradura',
     short: 'Herradura',
-    lat: -12.1547, lon: -77.0435,
+    lat: -12.1706, lon: -77.0352,
     district: 'Chorrillos',
     notes: 'Playa semiabierta protegida, buenas condiciones para swimming',
     digesa: 'saludable',
@@ -891,7 +891,7 @@ const BEACHES = [
     id: 'pescadores',
     name: 'Pescadores',
     short: 'Pescadores',
-    lat: -12.1670, lon: -77.0196,
+    lat: -12.1622, lon: -77.0257,
     district: 'Chorrillos',
     notes: 'Zona tranquila, vigilada por la Marina',
     digesa: 'saludable',
@@ -900,7 +900,7 @@ const BEACHES = [
     id: 'aguadulce',
     name: 'Agua Dulce',
     short: 'Agua Dulce',
-    lat: -12.1611, lon: -77.0234,
+    lat: -12.1578, lon: -77.0243,
     district: 'Chorrillos',
     notes: 'Playa más concurrida, fácil acceso',
     digesa: 'sin-datos',
@@ -909,7 +909,7 @@ const BEACHES = [
     id: 'yuyos',
     name: 'Yuyos',
     short: 'Yuyos',
-    lat: -12.1582, lon: -77.0210,
+    lat: -12.1560, lon: -77.0232,
     district: 'Chorrillos',
     notes: 'Aguas algo rocosas, poca corriente costera',
     digesa: 'no-saludable',
@@ -918,7 +918,7 @@ const BEACHES = [
     id: 'sombrillas',
     name: 'Sombrillas',
     short: 'Sombrillas',
-    lat: -12.1573, lon: -77.0201,
+    lat: -12.1549, lon: -77.0224,
     district: 'Chorrillos',
     notes: 'Próxima a Agua Dulce, condiciones similares',
     digesa: 'saludable',
@@ -1448,9 +1448,9 @@ function initLeafletMap() {
       iconAnchor: [41, 61]
     });
     const marker = L.marker([beach.lat, beach.lon], { icon })
-      .addTo(leafletMap)
       .on('click', () => selectBeach(i));
     leafletMarkers[beach.id] = marker;
+    if (i === currentBeach) marker.addTo(leafletMap);
   });
 }
 
@@ -1459,13 +1459,18 @@ function refreshMapMarkers() {
   BEACHES.forEach((beach, i) => {
     const marker = leafletMarkers[beach.id];
     if (!marker) return;
-    const icon = L.divIcon({
-      className: '',
-      html: buildPinHTML(beach, beachData[beach.id] || null, i === currentBeach),
-      iconSize: [82, 54],
-      iconAnchor: [41, 61]
-    });
-    marker.setIcon(icon);
+    if (i === currentBeach) {
+      const icon = L.divIcon({
+        className: '',
+        html: buildPinHTML(beach, beachData[beach.id] || null, true),
+        iconSize: [82, 54],
+        iconAnchor: [41, 61]
+      });
+      marker.setIcon(icon);
+      if (!leafletMap.hasLayer(marker)) marker.addTo(leafletMap);
+    } else {
+      if (leafletMap.hasLayer(marker)) leafletMap.removeLayer(marker);
+    }
   });
 }
 
