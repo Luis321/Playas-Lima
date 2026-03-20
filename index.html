@@ -272,8 +272,7 @@
     .hero-tips-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 8px;
       align-items: start;
     }
     @media (max-width: 580px) {
@@ -300,12 +299,18 @@
     .hero-card.compact .mini-value { font-size: 1rem; }
     .hero-card.compact .mini-label { font-size: .62rem; }
 
+    /* ─── SECTIONS WRAPPER ─────────────────────────────────── */
+    .sections-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
     /* ─── SECTION GRID ─────────────────────────────────────── */
     .data-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 8px;
     }
     @media (max-width: 420px) {
       .data-grid { grid-template-columns: 1fr; }
@@ -1129,6 +1134,7 @@ function buildContent(beach, data) {
   const tips = buildTips(m, w, score);
 
   return `
+  <div class="sections-stack">
   <!-- HERO + TIPS ROW -->
   <div class="hero-tips-row">
 
@@ -1295,7 +1301,7 @@ function buildContent(beach, data) {
   </div>
 
   <!-- FORECAST -->
-  <div class="data-card full-width" style="margin-bottom:12px">
+  <div class="data-card full-width">
     <div class="card-title"><span class="card-icon">📊</span> Pronóstico 12 horas</div>
     <div class="forecast-scroll">${forecastItems}</div>
     <div style="display:flex;gap:16px;margin-top:10px;font-family:var(--font-data);font-size:.6rem;color:var(--muted)">
@@ -1307,9 +1313,10 @@ function buildContent(beach, data) {
   </div>
 
   <!-- BEACH NOTES -->
-  <div style="font-family:var(--font-data);font-size:.65rem;color:var(--muted);text-align:center;padding:8px 0 4px">
+  <div style="font-family:var(--font-data);font-size:.65rem;color:var(--muted);text-align:center;padding:4px 0">
     📍 ${beach.notes} · ${beach.lat.toFixed(4)}, ${beach.lon.toFixed(4)}
   </div>
+  </div><!-- /sections-stack -->
   `;
 }
 
