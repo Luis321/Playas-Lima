@@ -78,9 +78,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 }
 /* ── SWIMMER SCENE ── */
 .swimmer-scene{
-  width:220px;height:140px;
+  width:260px;height:173px;
   position:relative;
+  border-radius:12px;
   overflow:hidden;
+  box-shadow:0 0 32px rgba(0,180,255,.18),0 0 0 1px rgba(0,212,255,.12);
 }
 .sw-ocean{
   position:absolute;bottom:0;left:0;right:0;
@@ -646,81 +648,16 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
 <!-- LOADER -->
 <div id="loader">
 
-  <!-- Swimmer animation scene -->
+  <!-- Swimmer GIF -->
   <div class="swimmer-scene">
-
-    <!-- Bubbles -->
-    <div class="sw-bubble" style="width:4px;height:4px;left:52%;bottom:38px;animation-delay:.3s;animation-duration:1.8s"></div>
-    <div class="sw-bubble" style="width:3px;height:3px;left:57%;bottom:34px;animation-delay:.9s;animation-duration:2.2s"></div>
-    <div class="sw-bubble" style="width:5px;height:5px;left:47%;bottom:36px;animation-delay:1.5s;animation-duration:2s"></div>
-
-    <!-- Entry splash rings -->
-    <div class="sw-splash">
-      <svg width="44" height="12" viewBox="0 0 44 12" fill="none">
-        <ellipse cx="22" cy="6" rx="20" ry="5" stroke="rgba(0,212,255,.5)" stroke-width="1.5"/>
-        <ellipse cx="22" cy="6" rx="12" ry="3" stroke="rgba(0,212,255,.3)" stroke-width="1"/>
-      </svg>
-    </div>
-
-    <!-- Swimmer SVG -->
-    <div class="sw-person">
-      <svg width="70" height="48" viewBox="0 0 70 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-        <!-- Body — horizontal prone position -->
-        <ellipse cx="35" cy="26" rx="18" ry="6" fill="rgba(0,180,255,.18)" stroke="rgba(0,212,255,.5)" stroke-width="1.2"/>
-
-        <!-- Head -->
-        <circle cx="52" cy="22" r="6" fill="rgba(0,212,255,.25)" stroke="rgba(0,212,255,.7)" stroke-width="1.2"/>
-        <!-- Cap -->
-        <path d="M47 20 Q52 14 57 20" stroke="rgba(0,229,160,.9)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-        <!-- Goggles -->
-        <circle cx="54" cy="23" r="1.8" stroke="rgba(0,229,160,.8)" stroke-width="1" fill="rgba(0,229,160,.15)"/>
-        <circle cx="50" cy="23" r="1.8" stroke="rgba(0,229,160,.8)" stroke-width="1" fill="rgba(0,229,160,.15)"/>
-        <line x1="50" y1="21.2" x2="50" y2="20" stroke="rgba(0,229,160,.5)" stroke-width=".8"/>
-        <line x1="54" y1="21.2" x2="54" y2="20" stroke="rgba(0,229,160,.5)" stroke-width=".8"/>
-
-        <!-- Arm right (forward stroke) -->
-        <g class="sw-arm-r" style="transform-origin:53px 24px">
-          <path d="M53 24 Q64 16 68 10" stroke="rgba(0,212,255,.8)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-          <!-- Hand -->
-          <ellipse cx="68" cy="9" rx="3" ry="1.5" fill="rgba(0,212,255,.4)" stroke="rgba(0,212,255,.7)" stroke-width="1" transform="rotate(-30 68 9)"/>
-        </g>
-
-        <!-- Arm left (recovery) -->
-        <g class="sw-arm-l" style="transform-origin:53px 26px">
-          <path d="M53 26 Q62 32 66 38" stroke="rgba(0,212,255,.5)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-          <ellipse cx="66" cy="38" rx="3" ry="1.5" fill="rgba(0,212,255,.25)" stroke="rgba(0,212,255,.4)" stroke-width="1" transform="rotate(20 66 38)"/>
-        </g>
-
-        <!-- Torso stripe (wetsuit) -->
-        <path d="M36 22 Q40 20 46 22" stroke="rgba(0,229,160,.4)" stroke-width="1" stroke-linecap="round" fill="none"/>
-
-        <!-- Leg right kick -->
-        <g class="sw-leg-r" style="transform-origin:20px 26px">
-          <path d="M20 26 Q14 30 10 35" stroke="rgba(0,212,255,.7)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-          <ellipse cx="9" cy="36" rx="4" ry="1.8" fill="rgba(0,212,255,.3)" stroke="rgba(0,212,255,.6)" stroke-width="1" transform="rotate(30 9 36)"/>
-        </g>
-
-        <!-- Leg left kick -->
-        <g class="sw-leg-l" style="transform-origin:20px 28px">
-          <path d="M20 28 Q14 26 9 28" stroke="rgba(0,212,255,.5)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-          <ellipse cx="8" cy="28" rx="4" ry="1.8" fill="rgba(0,212,255,.2)" stroke="rgba(0,212,255,.4)" stroke-width="1"/>
-        </g>
-
-        <!-- Water line intersection -->
-        <line x1="10" y1="30" x2="66" y2="30" stroke="rgba(0,212,255,.12)" stroke-width=".8" stroke-dasharray="3 3"/>
-
-      </svg>
-    </div>
-
-    <!-- Ocean waves -->
-    <div class="sw-ocean">
-      <div class="sw-wave1"></div>
-      <div class="sw-wave2"></div>
-      <div class="sw-wave3"></div>
-      <div class="sw-water"></div>
-    </div>
-
+    <img
+      src="https://i.picasion.com/pic93/359ba42d7174c3e16b9f2d94cb43b36b.gif"
+      width="260" height="173"
+      alt="Nadador open water"
+      style="display:block;border-radius:12px;image-rendering:pixelated;"
+      crossorigin="anonymous"
+      onerror="this.style.display='none'"
+    />
   </div>
 
   <div class="ld-logo">OW<span> Lima</span></div>
