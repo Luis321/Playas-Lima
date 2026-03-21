@@ -11,811 +11,453 @@
 <title>OW Lima</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet"/>
-
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-/* ─────────────────────────────────────────
-   TOKENS
-───────────────────────────────────────── */
+/* ══════════════ TOKENS ══════════════ */
 :root {
-  --ink:    #020c1a;
-  --d1:     #061322;
-  --d2:     #0a1e33;
-  --d3:     #102540;
-  --glass:  rgba(6,19,34,.72);
-  --frost:  rgba(6,19,34,.55);
-  --edge:   rgba(255,255,255,.06);
-  --edge2:  rgba(255,255,255,.12);
-  --tp:     #e8f4ff;
-  --ts:     #6e94ae;
-  --tm:     #3d627c;
+  --ink:   #020c1a;
+  --d1:    #061322;
+  --d2:    #0a1e33;
+  --d3:    #112640;
+  --glass: rgba(6,19,34,.75);
+  --frost: rgba(6,19,34,.6);
+  --edge:  rgba(255,255,255,.07);
+  --edge2: rgba(255,255,255,.14);
+  --tp:    #e8f4ff;
+  --ts:    #6e94ae;
+  --tm:    #3d627c;
+  --cyan:  #00d4ff;
+  --green: #00e5a0;
+  --amber: #ffa726;
+  --red:   #ff3d5a;
+  --purple:#c084fc;
+  --fh:'Syne',sans-serif;
+  --fm:'DM Mono',monospace;
+  --fb:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent}
+body{background:var(--ink);color:var(--tp);font-family:var(--fb);min-height:100dvh;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
 
-  --cyan:   #00d4ff;
-  --green:  #00e5a0;
-  --amber:  #ffa726;
-  --red:    #ff3d5a;
-  --purple: #c084fc;
+/* ══════════════ LOADER ══════════════ */
+#loader{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s}
+#loader.out{opacity:0;pointer-events:none}
+.ld-logo{font-family:var(--fh);font-size:2rem;font-weight:800;letter-spacing:-.02em}
+.ld-logo span{color:var(--cyan)}
+.ld-bar{width:48px;height:2px;background:var(--d3);border-radius:2px;margin-top:20px;overflow:hidden}
+.ld-bar::after{content:'';display:block;height:100%;background:var(--cyan);border-radius:2px;animation:ldslide 1.2s ease infinite}
+@keyframes ldslide{0%{width:0;margin-left:0}50%{width:100%;margin-left:0}100%{width:0;margin-left:100%}}
+.ld-txt{font-family:var(--fm);font-size:.55rem;letter-spacing:.28em;text-transform:uppercase;color:var(--ts);margin-top:14px}
 
-  /* Dynamic atmosphere — changes with score */
-  --atm-a:  #001833;
-  --atm-b:  #002244;
+/* ══════════════ BACKGROUND ══════════════ */
+#wvc{position:fixed;top:0;left:0;width:100%;height:100dvh;pointer-events:none;z-index:0;opacity:.2}
+.atm{position:fixed;top:-30%;left:50%;transform:translateX(-50%);width:100vw;height:70vh;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.13;transition:background 1.2s ease}
 
-  --fh: 'Syne', sans-serif;
-  --fm: 'DM Mono', monospace;
-  --fb: 'Cabinet Grotesk', sans-serif;
-}
+/* Grain */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
-html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent }
-body {
-  background: var(--ink);
-  color: var(--tp);
-  font-family: var(--fb);
-  min-height: 100dvh;
-  overflow-x: hidden;
-}
-button { font-family: inherit; cursor: pointer; border: none; background: none }
-
-/* ─────────────────────────────────────────
-   LOADER
-───────────────────────────────────────── */
-#loader {
-  position: fixed; inset: 0;
-  background: var(--ink);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 9999;
-  transition: opacity .6s ease;
-}
-#loader.out { opacity: 0; pointer-events: none }
-.ld-logo {
-  font-family: var(--fh);
-  font-size: 2rem; font-weight: 800;
-  letter-spacing: -.02em;
-  color: var(--tp);
-}
-.ld-logo span { color: var(--cyan) }
-.ld-wave {
-  width: 48px; height: 3px;
-  background: var(--d3);
-  border-radius: 2px;
-  margin-top: 20px;
-  position: relative;
-  overflow: hidden;
-}
-.ld-wave::after {
-  content: '';
-  position: absolute; left: -100%; top: 0;
-  width: 100%; height: 100%;
-  background: var(--cyan);
-  border-radius: 2px;
-  animation: ldslide 1.2s ease infinite;
-}
-@keyframes ldslide { to { left: 200% } }
-.ld-txt {
-  font-family: var(--fm); font-size: .55rem;
-  letter-spacing: .3em; text-transform: uppercase;
-  color: var(--ts); margin-top: 14px;
+/* ══════════════ TOP NAV — 2 ROWS ══════════════ */
+.topnav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:linear-gradient(to bottom,rgba(2,12,26,.97) 85%,transparent);
+  padding-top:max(12px,env(safe-area-inset-top));
 }
 
-/* ─────────────────────────────────────────
-   GRAIN OVERLAY
-───────────────────────────────────────── */
-#grain {
-  position: fixed; inset: 0;
-  pointer-events: none; z-index: 1;
-  opacity: .022;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+/* Row 1: brand + level */
+.nav-r1{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:0 16px 8px;
+}
+.brand{font-family:var(--fh);font-size:1rem;font-weight:800;letter-spacing:-.01em;color:var(--tp)}
+.brand span{color:var(--cyan)}
+
+/* Level pills */
+.lv-wrap{display:flex;gap:2px;background:var(--d2);border:1px solid var(--edge);border-radius:10px;padding:3px}
+.lv{
+  font-family:var(--fm);font-size:.58rem;font-weight:500;
+  letter-spacing:.07em;text-transform:uppercase;
+  padding:6px 11px;border-radius:7px;
+  color:var(--ts);transition:all .2s;
+  white-space:nowrap;min-height:32px;
+  display:flex;align-items:center;
+}
+.lv.on{background:var(--d3);color:var(--tp);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+/* Row 2: beach tabs */
+.nav-r2{
+  padding:0 14px 10px;
+  border-top:1px solid var(--edge);
+  padding-top:8px;
+}
+.bscroll{
+  display:flex;gap:7px;
+  overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.bscroll::-webkit-scrollbar{display:none}
+.btab{
+  flex-shrink:0;
+  display:flex;align-items:center;gap:7px;
+  padding:9px 15px;
+  border-radius:24px;
+  border:1px solid var(--edge);
+  background:var(--glass);
+  backdrop-filter:blur(12px);
+  transition:all .22s;
+  min-height:40px;
+  white-space:nowrap;
+}
+.btab:active{transform:scale(.93)}
+.btab.on{background:rgba(255,255,255,.1);border-color:var(--edge2)}
+.btab-flag{width:9px;height:14px;border-radius:2px;flex-shrink:0;transition:background .3s}
+.btab-nm{
+  font-family:var(--fm);font-size:.62rem;font-weight:500;
+  letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ts);transition:color .2s;
+}
+.btab.on .btab-nm{color:var(--tp)}
+.f-green{background:var(--green)}
+.f-yellow{background:var(--amber)}
+.f-red{background:var(--red)}
+.f-purple{background:var(--purple)}
+.f-grey{background:var(--tm)}
+
+/* ══════════════ MAIN ══════════════ */
+.main{position:relative;z-index:5;padding-top:calc(max(12px,env(safe-area-inset-top)) + 88px)}
+
+/* ══════════════ HERO — no overlaps ══════════════ */
+.hero{
+  position:relative;
+  min-height:calc(100dvh - calc(max(12px,env(safe-area-inset-top)) + 88px));
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.hero-bg{position:absolute;inset:0;z-index:0}
+#hc{width:100%;height:100%;display:block}
+
+/* gradient overlay so text is always readable */
+.hero-overlay{
+  position:absolute;inset:0;z-index:1;
+  background:linear-gradient(
+    to bottom,
+    rgba(2,12,26,.1) 0%,
+    rgba(2,12,26,.0) 25%,
+    rgba(2,12,26,.4) 60%,
+    rgba(2,12,26,.92) 100%
+  );
 }
 
-/* ─────────────────────────────────────────
-   WAVE CANVAS
-───────────────────────────────────────── */
-#wvc {
-  position: fixed; top: 0; left: 0;
-  width: 100%; height: 100dvh;
-  pointer-events: none; z-index: 0;
-  opacity: .18;
+.hero-content{
+  position:relative;z-index:2;
+  flex:1;display:flex;flex-direction:column;
+  justify-content:flex-end;
+  padding:24px 20px 28px;
+  gap:0;
 }
 
-/* ─────────────────────────────────────────
-   ATMOSPHERE GLOW — changes per score
-───────────────────────────────────────── */
-.atm-glow {
-  position: fixed;
-  top: -40%; left: 50%;
-  transform: translateX(-50%);
-  width: 120vw; height: 80vh;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none; z-index: 0;
-  opacity: .12;
-  background: var(--atm-col, #003388);
-  transition: background 1.2s ease, opacity 1.2s ease;
+/* Score — top right, no overlap with name */
+.hero-score-badge{
+  align-self:flex-end;
+  margin-bottom:16px;
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  position:relative;
+}
+.score-ring{
+  width:clamp(88px,22vw,108px);
+  height:clamp(88px,22vw,108px);
+  position:relative;
+}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.sr-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:3}
+.sr-fill{fill:none;stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.22,.68,0,1.2),stroke .6s}
+.score-inner{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.score-n{
+  font-family:var(--fh);font-size:clamp(1.8rem,6vw,2.4rem);
+  font-weight:800;line-height:1;letter-spacing:-.03em;
+  transition:color .6s;
+}
+.score-l{font-family:var(--fm);font-size:.42rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ts);margin-top:2px}
+
+/* Beach name */
+.hero-name{
+  font-family:var(--fh);
+  font-size:clamp(2.4rem,9vw,3.6rem);
+  font-weight:800;line-height:.95;
+  letter-spacing:-.03em;
+  color:var(--tp);
+  margin-bottom:10px;
 }
 
-/* ─────────────────────────────────────────
-   BEACH RAIL
-───────────────────────────────────────── */
-.bnav {
-  position: fixed; top: 0; left: 0; right: 0;
-  z-index: 200;
-  padding: max(14px, env(safe-area-inset-top)) 16px 0;
-  background: linear-gradient(to bottom, rgba(2,12,26,.95) 70%, transparent);
-  backdrop-filter: blur(0px);
-}
-.bnav-inner {
-  display: flex; align-items: center;
-  justify-content: space-between; gap: 8px;
-}
-.brand {
-  font-family: var(--fh);
-  font-size: .95rem; font-weight: 800;
-  letter-spacing: -.01em; flex-shrink: 0;
-  color: var(--tp);
-}
-.brand span { color: var(--cyan) }
-.bscroll {
-  display: flex; gap: 6px;
-  overflow-x: auto; scrollbar-width: none;
-  flex: 1; justify-content: flex-end;
-}
-.bscroll::-webkit-scrollbar { display: none }
-.btab {
-  flex-shrink: 0;
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 12px;
-  border-radius: 20px;
-  border: 1px solid var(--edge);
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  transition: all .22s ease;
-  min-height: 36px;
-}
-.btab:active { transform: scale(.94) }
-.btab.on {
-  background: rgba(255,255,255,.1);
-  border-color: var(--edge2);
-}
-.btab-flag {
-  width: 8px; height: 12px;
-  border-radius: 1.5px;
-  flex-shrink: 0;
-}
-.btab-nm {
-  font-family: var(--fm);
-  font-size: .6rem; font-weight: 500;
-  letter-spacing: .08em; text-transform: uppercase;
-  color: var(--ts); white-space: nowrap;
-  transition: color .2s;
-}
-.btab.on .btab-nm { color: var(--tp) }
+/* Verdict */
+.verdict-row{display:flex;align-items:center;gap:9px;margin-bottom:16px}
+.vd-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;animation:pulse 2.2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.55)}}
+.vd-label{font-family:var(--fh);font-size:clamp(.82rem,2.8vw,1rem);font-weight:700;letter-spacing:.07em;text-transform:uppercase;line-height:1}
+.vd-phrase{font-size:.75rem;color:var(--ts);margin-top:2px;font-weight:400}
 
-/* Level selector */
-.lv-wrap {
-  display: flex; gap: 2px;
-  background: var(--d2);
-  border-radius: 8px;
-  padding: 3px;
-  border: 1px solid var(--edge);
-  flex-shrink: 0;
+/* KPIs */
+.hero-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
+.hkpi{
+  background:var(--frost);backdrop-filter:blur(16px);
+  border:1px solid var(--edge);border-radius:11px;
+  padding:10px 8px;text-align:center;
 }
-.lv {
-  font-family: var(--fm); font-size: .55rem;
-  letter-spacing: .07em; text-transform: uppercase;
-  padding: 5px 8px; border-radius: 5px;
-  color: var(--ts); transition: all .18s;
-  white-space: nowrap;
-}
-.lv.on { background: var(--d3); color: var(--tp) }
+.hkv{font-family:var(--fm);font-size:1.2rem;font-weight:500;line-height:1}
+.hku{font-size:.57rem;color:var(--ts)}
+.hkl{font-size:.58rem;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
 
-/* ─────────────────────────────────────────
-   HERO — FULL SCREEN
-───────────────────────────────────────── */
-.hero-screen {
-  position: relative; z-index: 5;
-  min-height: 100dvh;
-  display: flex; flex-direction: column;
-  justify-content: flex-end;
-  padding: 0 0 clamp(24px,6vw,40px);
-  overflow: hidden;
+/* Wave bar */
+.hero-wbar{
+  background:var(--frost);backdrop-filter:blur(16px);
+  border:1px solid var(--edge);border-radius:11px;
+  padding:12px 14px;margin-bottom:9px;
 }
-
-/* Hero background canvas per-beach */
-.hero-canvas {
-  position: absolute; inset: 0;
-  z-index: 0;
-}
-
-/* Score — centerpiece */
-.hero-score-wrap {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  z-index: 2;
-  pointer-events: none;
-}
-.hero-score-ring {
-  width: clamp(160px, 44vw, 200px);
-  height: clamp(160px, 44vw, 200px);
-  margin: 0 auto;
-  position: relative;
-}
-.hero-score-ring svg {
-  width: 100%; height: 100%;
-  transform: rotate(-90deg);
-}
-.hsr-bg { fill: none; stroke: rgba(255,255,255,.06); stroke-width: 2.5 }
-.hsr-fill {
-  fill: none; stroke-width: 2.5;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 1.2s cubic-bezier(.22,.68,0,1.2), stroke .6s ease;
-}
-.score-inner {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-}
-.score-num {
-  font-family: var(--fh);
-  font-size: clamp(3.2rem, 12vw, 4.8rem);
-  font-weight: 800; line-height: 1;
-  letter-spacing: -.04em;
-  transition: color .6s ease;
-}
-.score-lbl {
-  font-family: var(--fm); font-size: .52rem;
-  letter-spacing: .2em; text-transform: uppercase;
-  color: var(--ts); margin-top: 4px;
-}
-
-/* Hero bottom content */
-.hero-bottom {
-  position: relative; z-index: 5;
-  padding: 0 20px;
-}
-.hero-beach-name {
-  font-family: var(--fh);
-  font-size: clamp(2.6rem, 10vw, 4rem);
-  font-weight: 800; line-height: .95;
-  letter-spacing: -.03em;
-  color: var(--tp);
-  margin-bottom: 10px;
-}
-.hero-verdict-row {
-  display: flex; align-items: center; gap: 10px;
-  margin-bottom: 20px;
-}
-.verdict-pulse {
-  width: 9px; height: 9px; border-radius: 50%;
-  flex-shrink: 0;
-  animation: pulse 2.2s ease infinite;
-}
-@keyframes pulse {
-  0%,100% { opacity:1; transform:scale(1) }
-  50% { opacity:.25; transform:scale(.55) }
-}
-.verdict-label {
-  font-family: var(--fh);
-  font-size: clamp(.85rem, 3vw, 1.05rem);
-  font-weight: 700; letter-spacing: .06em;
-  text-transform: uppercase; line-height: 1;
-}
-.verdict-phrase {
-  font-family: var(--fb);
-  font-size: .8rem; color: var(--ts);
-  margin-top: 2px; font-weight: 400;
-}
-
-/* Hero KPI strip */
-.hero-kpis {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 8px; margin-bottom: 14px;
-}
-.hkpi {
-  background: var(--frost);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--edge);
-  border-radius: 12px;
-  padding: 11px 8px;
-  text-align: center;
-}
-.hkv {
-  font-family: var(--fm);
-  font-size: 1.25rem; font-weight: 500; line-height: 1;
-}
-.hku { font-size: .58rem; color: var(--ts) }
-.hkl {
-  font-size: .6rem; color: var(--ts);
-  text-transform: uppercase; letter-spacing: .08em;
-  margin-top: 4px;
-}
-
-/* Wave bar in hero */
-.hero-wbar {
-  background: var(--frost);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--edge);
-  border-radius: 12px;
-  padding: 13px 14px;
-  margin-bottom: 10px;
-}
-.hwb-head {
-  display: flex; justify-content: space-between;
-  align-items: baseline; margin-bottom: 8px;
-}
-.hwb-lbl { font-size: .65rem; color: var(--ts) }
-.hwb-val {
-  font-family: var(--fm); font-size: .72rem;
-  font-weight: 500;
-}
-.hwb-track {
-  height: 5px; background: rgba(255,255,255,.06);
-  border-radius: 3px; overflow: hidden;
-}
-.hwb-fill {
-  height: 100%; border-radius: 3px;
-  transition: width .9s cubic-bezier(.22,.68,0,1.2);
-}
-.hwb-meta {
-  display: flex; justify-content: space-between;
-  margin-top: 6px;
-}
-.hwb-human {
-  font-size: .7rem; font-weight: 500;
-}
-.hwb-who { font-size: .65rem; color: var(--ts) }
-
-/* Flag in hero */
-.hero-flag {
-  display: flex; align-items: center; gap: 12px;
-  background: var(--frost);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--edge);
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-}
-.hf-pole {
-  display: flex; flex-direction: column;
-  align-items: center; flex-shrink: 0;
-  gap: 0;
-}
-.hf-mast {
-  width: 2px; height: 28px;
-  background: rgba(255,255,255,.25);
-  border-radius: 1px;
-}
-.hf-rect {
-  width: 22px; height: 16px;
-  border-radius: 2px;
-  transform-origin: left center;
-  animation: waveFlag 2.5s ease-in-out infinite;
-}
-@keyframes waveFlag {
-  0%,100% { transform: skewY(0deg) scaleX(1) }
-  50% { transform: skewY(-3deg) scaleX(.9) }
-}
-.hf-info {}
-.hf-label {
-  font-family: var(--fh); font-size: .88rem;
-  font-weight: 700; letter-spacing: .04em; line-height: 1;
-}
-.hf-reason { font-size: .67rem; color: var(--ts); margin-top: 3px; line-height: 1.4 }
-.hf-action {
-  font-family: var(--fm); font-size: .6rem;
-  margin-top: 5px; letter-spacing: .05em;
-}
-
-/* DIGESA + best time row */
-.hero-meta-row {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 8px; margin-bottom: 10px;
-}
-.meta-pill {
-  background: var(--frost);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--edge);
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-.mp-label {
-  font-family: var(--fm); font-size: .53rem;
-  letter-spacing: .15em; text-transform: uppercase;
-  color: var(--tm); margin-bottom: 5px;
-}
-.mp-val { font-size: .72rem; font-weight: 500; line-height: 1.3 }
-.mp-sub { font-size: .62rem; color: var(--ts); margin-top: 2px }
+.wb-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.wb-lbl{font-size:.63rem;color:var(--ts)}
+.wb-val{font-family:var(--fm);font-size:.7rem;font-weight:500}
+.wb-track{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.wb-fill{height:100%;border-radius:3px;transition:width .9s cubic-bezier(.22,.68,0,1.2)}
+.wb-meta{display:flex;justify-content:space-between;margin-top:5px}
+.wb-human{font-size:.68rem;font-weight:500}
+.wb-who{font-size:.63rem;color:var(--ts)}
 
 /* Tags */
-.hero-tags {
-  display: flex; flex-wrap: wrap; gap: 5px;
-  margin-bottom: 8px;
+.hero-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
+.tag{font-family:var(--fm);font-size:.57rem;letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid;backdrop-filter:blur(8px)}
+.tg{color:var(--green);border-color:rgba(0,229,160,.25);background:rgba(0,229,160,.08)}
+.ty{color:var(--amber);border-color:rgba(255,167,38,.25);background:rgba(255,167,38,.08)}
+.tr{color:var(--red);border-color:rgba(255,61,90,.25);background:rgba(255,61,90,.08)}
+.tp2{color:var(--purple);border-color:rgba(192,132,252,.25);background:rgba(192,132,252,.08)}
+
+/* Flag */
+.hero-flag{
+  display:flex;align-items:flex-start;gap:11px;
+  background:var(--frost);backdrop-filter:blur(16px);
+  border:1px solid;border-radius:11px;
+  padding:12px 13px;margin-bottom:9px;
+  transition:border-color .4s;
 }
-.tag {
-  font-family: var(--fm); font-size: .56rem;
-  letter-spacing: .06em; text-transform: uppercase;
-  padding: 5px 9px; border-radius: 5px; border: 1px solid;
-  backdrop-filter: blur(8px);
+.hf-pole{display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;padding-top:2px;gap:0}
+.hf-rect{width:20px;height:14px;border-radius:2px;animation:waveFlag 2.5s ease-in-out infinite}
+@keyframes waveFlag{0%,100%{transform:skewY(0)scaleX(1)}50%{transform:skewY(-4deg)scaleX(.88)}}
+.hf-mast{width:2px;height:24px;background:rgba(255,255,255,.22);border-radius:1px;margin-top:1px}
+.hf-info{}
+.hf-label{font-family:var(--fh);font-size:.85rem;font-weight:700;letter-spacing:.04em;line-height:1}
+.hf-reason{font-size:.66rem;color:var(--ts);margin-top:3px;line-height:1.4}
+.hf-action{font-family:var(--fm);font-size:.6rem;margin-top:5px;letter-spacing:.04em}
+
+/* Best + DIGESA */
+.hero-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.meta-pill{
+  background:var(--frost);backdrop-filter:blur(16px);
+  border:1px solid var(--edge);border-radius:10px;
+  padding:10px 12px;transition:border-color .3s;
 }
-.tg { color: var(--green); border-color: rgba(0,229,160,.25); background: rgba(0,229,160,.08) }
-.ty { color: var(--amber); border-color: rgba(255,167,38,.25); background: rgba(255,167,38,.08) }
-.tr { color: var(--red); border-color: rgba(255,61,90,.25); background: rgba(255,61,90,.08) }
-.tp2{ color: var(--purple); border-color: rgba(192,132,252,.25); background: rgba(192,132,252,.08) }
+.mp-lbl{font-family:var(--fm);font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tm);margin-bottom:4px}
+.mp-val{font-size:.72rem;font-weight:500;line-height:1.2}
+.mp-sub{font-size:.6rem;color:var(--ts);margin-top:2px}
 
 /* Scroll hint */
-.scroll-hint {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 6px;
-  margin-top: 20px; opacity: .35;
-  animation: bobDown 2s ease infinite;
+.scroll-hint{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  margin-top:16px;opacity:.3;
+  animation:bob 2.2s ease infinite;
 }
-@keyframes bobDown {
-  0%,100% { transform: translateY(0) }
-  50% { transform: translateY(5px) }
-}
-.scroll-hint span {
-  font-family: var(--fm); font-size: .52rem;
-  letter-spacing: .2em; text-transform: uppercase;
-  color: var(--ts);
-}
-.scroll-chevron {
-  width: 16px; height: 10px;
-  border-bottom: 1.5px solid var(--ts);
-  border-right: 1.5px solid var(--ts);
-  transform: rotate(45deg) translate(-3px,-3px);
-}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+.scroll-hint span{font-family:var(--fm);font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ts)}
+.sh-arr{width:14px;height:9px;border-bottom:1.5px solid var(--ts);border-right:1.5px solid var(--ts);transform:rotate(45deg) translate(-3px,-3px)}
 
-/* ─────────────────────────────────────────
-   ALERTS — below hero
-───────────────────────────────────────── */
-.alerts-section {
-  position: relative; z-index: 5;
-  padding: 0 16px; margin-bottom: 6px;
-}
-.alerts-title {
-  font-family: var(--fm); font-size: .56rem;
-  letter-spacing: .2em; text-transform: uppercase;
-  color: var(--tm); margin-bottom: 8px;
-  padding: 0 2px;
-}
-.alert-card {
-  display: flex; align-items: flex-start;
-  gap: 12px; padding: 14px 15px;
-  border-radius: 14px; border: 1px solid;
-  margin-bottom: 7px;
-  position: relative; overflow: hidden;
-}
-.alert-card::before {
-  content: ''; position: absolute;
-  left: 0; top: 0; bottom: 0; width: 3px;
-}
-.ac-green { border-color: rgba(0,229,160,.18); background: rgba(0,229,160,.05) }
-.ac-green::before { background: var(--green) }
-.ac-amber { border-color: rgba(255,167,38,.18); background: rgba(255,167,38,.05) }
-.ac-amber::before { background: var(--amber) }
-.ac-red { border-color: rgba(255,61,90,.2); background: rgba(255,61,90,.06) }
-.ac-red::before { background: var(--red) }
-.ac-cyan { border-color: rgba(0,212,255,.16); background: rgba(0,212,255,.04) }
-.ac-cyan::before { background: var(--cyan) }
-.al-ico { font-size: 1rem; flex-shrink: 0; margin-top: 1px }
-.al-ttl {
-  font-family: var(--fh); font-size: .82rem;
-  font-weight: 700; letter-spacing: .02em; line-height: 1.1;
-}
-.ac-green .al-ttl { color: var(--green) }
-.ac-amber .al-ttl { color: var(--amber) }
-.ac-red .al-ttl { color: var(--red) }
-.ac-cyan .al-ttl { color: var(--cyan) }
-.al-msg { font-size: .7rem; color: var(--ts); margin-top: 3px; line-height: 1.45 }
-.al-act {
-  font-family: var(--fm); font-size: .6rem;
-  letter-spacing: .04em; margin-top: 5px;
-}
-.ac-green .al-act { color: var(--green) }
-.ac-amber .al-act { color: var(--amber) }
-.ac-red .al-act { color: var(--red) }
-.ac-cyan .al-act { color: var(--cyan) }
+/* ══════════════ ALERTS ══════════════ */
+.alerts-wrap{padding:16px 16px 0;max-width:680px;margin:0 auto}
+.alerts-ttl{font-family:var(--fm);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--tm);margin-bottom:8px;padding:0 2px}
+.alert-card{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;border-radius:14px;border:1px solid;margin-bottom:7px;position:relative;overflow:hidden}
+.alert-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.ac-green{border-color:rgba(0,229,160,.18);background:rgba(0,229,160,.05)}
+.ac-green::before{background:var(--green)}
+.ac-amber{border-color:rgba(255,167,38,.18);background:rgba(255,167,38,.05)}
+.ac-amber::before{background:var(--amber)}
+.ac-red{border-color:rgba(255,61,90,.2);background:rgba(255,61,90,.06)}
+.ac-red::before{background:var(--red)}
+.ac-cyan{border-color:rgba(0,212,255,.16);background:rgba(0,212,255,.04)}
+.ac-cyan::before{background:var(--cyan)}
+.al-ico{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.al-ttl{font-family:var(--fh);font-size:.8rem;font-weight:700;letter-spacing:.02em;line-height:1.1}
+.ac-green .al-ttl{color:var(--green)}.ac-amber .al-ttl{color:var(--amber)}.ac-red .al-ttl{color:var(--red)}.ac-cyan .al-ttl{color:var(--cyan)}
+.al-msg{font-size:.7rem;color:var(--ts);margin-top:3px;line-height:1.45}
+.al-act{font-family:var(--fm);font-size:.6rem;margin-top:4px;letter-spacing:.04em}
+.ac-green .al-act{color:var(--green)}.ac-amber .al-act{color:var(--amber)}.ac-red .al-act{color:var(--red)}.ac-cyan .al-act{color:var(--cyan)}
 
-/* ─────────────────────────────────────────
-   DATA SECTIONS
-───────────────────────────────────────── */
-.data-wrap {
-  position: relative; z-index: 5;
-  padding: 0 16px;
-  max-width: 680px; margin: 0 auto;
-}
-.sec {
-  background: var(--d1);
-  border: 1px solid var(--edge);
-  border-radius: 16px;
-  padding: 16px 17px;
-  margin-bottom: 8px;
-  transition: border-color .2s;
-}
-.sec:hover { border-color: var(--edge2) }
-.sec-hd {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 14px;
-}
-.sec-hd-txt {
-  font-family: var(--fm); font-size: .57rem;
-  font-weight: 500; letter-spacing: .2em;
-  text-transform: uppercase; color: var(--ts);
-}
-.sec-hd::after {
-  content: ''; flex: 1; height: 1px;
-  background: var(--edge);
-}
-.sec-ico { font-size: .88rem }
+/* ══════════════ DATA SECTIONS ══════════════ */
+.data-wrap{padding:10px 16px;max-width:680px;margin:0 auto}
+.sec{background:var(--d1);border:1px solid var(--edge);border-radius:14px;padding:15px 16px;margin-bottom:8px}
+.sec:hover{border-color:var(--edge2)}
+.sec-hd{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.sec-hd-t{font-family:var(--fm);font-size:.56rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--ts)}
+.sec-hd::after{content:'';flex:1;height:1px;background:var(--edge)}
+.sec-ico{font-size:.86rem}
+.dr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.dr:last-child{border-bottom:none}
+.dk{font-size:.75rem;color:var(--ts)}
+.dv{font-family:var(--fm);font-size:.82rem;font-weight:500;text-align:right}
+.du{font-size:.6rem;color:var(--ts);font-weight:300}
+.dm{font-size:.68rem;color:var(--ts);text-align:right;max-width:58%}
+.scl{margin:7px 0 4px}
+.scl-t{height:5px;background:var(--d3);border-radius:3px;overflow:hidden}
+.scl-f{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.22,.68,0,1.2)}
+.scl-lb{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.48rem;color:var(--tm);margin-top:3px}
+.scl-h{font-size:.7rem;font-weight:500;margin-top:5px}
+.scl-w{font-size:.62rem;color:var(--ts);margin-top:1px}
+.tip{padding:9px 11px;background:rgba(0,212,255,.04);border-left:2px solid rgba(0,212,255,.2);border-radius:0 7px 7px 0;margin-top:9px;font-size:.68rem;color:var(--ts);line-height:1.5}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+@media(max-width:360px){.cols2{grid-template-columns:1fr}}
+.compass-wrap{display:flex;align-items:center;gap:12px;margin-top:4px}
+.compass-svg{width:58px;height:58px;flex-shrink:0}
+.c-spd{font-family:var(--fm);font-size:1.35rem;font-weight:500;line-height:1}
+.c-u{font-size:.6rem;color:var(--ts)}
+.c-dir{font-size:.7rem;color:var(--ts);margin-top:3px}
+.c-desc{font-size:.65rem;color:var(--ts);margin-top:1px}
+.c-impact{font-size:.65rem;margin-top:2px}
+.temp-g{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px}
+.temp-b{background:var(--d2);border-radius:9px;padding:11px;text-align:center}
+.tv{font-family:var(--fm);font-size:1.55rem;font-weight:500;line-height:1}
+.tl{font-size:.6rem;color:var(--ts);margin-top:3px}
+.th{font-size:.62rem;color:var(--ts);margin-top:4px;line-height:1.35}
+.uv-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.uv-n{font-family:var(--fm);font-size:2.1rem;font-weight:500;line-height:1}
+.uv-badge{font-family:var(--fh);font-size:.72rem;font-weight:700;letter-spacing:.05em;padding:5px 11px;border-radius:5px;border:1px solid}
+.uv-t{height:7px;border-radius:4px;background:linear-gradient(to right,#00e5a0,#c6e03b,#ff9800,#f44336,#9c27b0);position:relative}
+.uv-m{position:absolute;top:-4.5px;width:16px;height:16px;background:#fff;border-radius:50%;border:2.5px solid #000;transform:translateX(-50%);transition:left .7s ease;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.uv-sc{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.49rem;color:var(--tm);margin-top:4px}
+.uv-adv{font-size:.7rem;color:var(--ts);margin-top:9px;line-height:1.5}
+.fc-rail{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:3px}
+.fc-rail::-webkit-scrollbar{display:none}
+.fc-i{flex-shrink:0;min-width:64px;background:var(--d2);border:1px solid var(--edge);border-radius:11px;padding:9px 7px;text-align:center;position:relative;overflow:hidden}
+.fc-i::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.fc-i.g::before{background:var(--green)}.fc-i.y::before{background:var(--amber)}.fc-i.r::before{background:var(--red)}.fc-i.p::before{background:var(--purple)}
+.fc-t{font-family:var(--fm);font-size:.53rem;color:var(--tm);margin-bottom:4px}
+.fc-fm{width:8px;height:11px;border-radius:2px;margin:0 auto 4px}
+.fc-i.g .fc-fm{background:var(--green)}.fc-i.y .fc-fm{background:var(--amber)}.fc-i.r .fc-fm{background:var(--red)}.fc-i.p .fc-fm{background:var(--purple)}
+.fc-w{font-family:var(--fm);font-size:.88rem;font-weight:500}
+.fc-wu{font-size:.5rem;color:var(--ts)}
+.fc-wi{font-size:.59rem;color:var(--ts);margin-top:2px}
+.fc-lb{font-family:var(--fm);font-size:.49rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-top:4px}
+.fc-i.g .fc-lb{color:var(--green)}.fc-i.y .fc-lb{color:var(--amber)}.fc-i.r .fc-lb{color:var(--red)}.fc-i.p .fc-lb{color:var(--purple)}
+.leg{display:flex;gap:10px;flex-wrap:wrap;margin-top:9px}
+.leg-i{display:flex;align-items:center;gap:5px;font-family:var(--fm);font-size:.56rem;color:var(--ts)}
+.leg-d{width:8px;height:8px;border-radius:50%}
+.safety-g{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px}
+.saf-i{background:var(--d2);border-radius:9px;padding:10px 11px;display:flex;gap:8px;align-items:flex-start}
+.saf-ico{font-size:.85rem;flex-shrink:0;margin-top:1px}
+.saf-t{font-size:.67rem;color:var(--ts);line-height:1.4}
+.saf-t b{color:var(--tp);display:block;margin-bottom:1px;font-weight:500}
 
-/* Data rows */
-.dr {
-  display: flex; justify-content: space-between;
-  align-items: center; padding: 7px 0;
-  border-bottom: 1px solid rgba(255,255,255,.03);
-}
-.dr:last-child { border-bottom: none }
-.dk { font-size: .76rem; color: var(--ts); font-weight: 400 }
-.dv {
-  font-family: var(--fm); font-size: .82rem;
-  font-weight: 500; color: var(--tp); text-align: right;
-}
-.du { font-size: .6rem; color: var(--ts); font-weight: 300 }
-
-/* Scale */
-.scl { margin: 8px 0 4px }
-.scl-t {
-  height: 5px; background: var(--d3);
-  border-radius: 3px; overflow: hidden;
-}
-.scl-f {
-  height: 100%; border-radius: 3px;
-  transition: width .8s cubic-bezier(.22,.68,0,1.2);
-}
-.scl-lb {
-  display: flex; justify-content: space-between;
-  font-family: var(--fm); font-size: .49rem;
-  color: var(--tm); margin-top: 3px;
-}
-.scl-human { font-size: .7rem; font-weight: 500; margin-top: 5px }
-.scl-who { font-size: .63rem; color: var(--ts); margin-top: 1px }
-
-/* Tip */
-.tip {
-  padding: 10px 12px;
-  background: rgba(0,212,255,.04);
-  border-left: 2px solid rgba(0,212,255,.2);
-  border-radius: 0 8px 8px 0;
-  margin-top: 10px;
-  font-size: .68rem; color: var(--ts); line-height: 1.5;
-}
-
-/* 2-col */
-.cols2 {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 8px; margin-bottom: 8px;
-}
-@media(max-width:360px){ .cols2 { grid-template-columns:1fr } }
-
-/* Compass */
-.compass-wrap { display: flex; align-items: center; gap: 13px; margin-top: 4px }
-.compass-svg { width: 60px; height: 60px; flex-shrink: 0 }
-.c-spd { font-family: var(--fm); font-size: 1.4rem; font-weight: 500; line-height: 1 }
-.c-u { font-size: .6rem; color: var(--ts) }
-.c-dir { font-size: .7rem; color: var(--ts); margin-top: 3px }
-.c-desc { font-size: .66rem; color: var(--ts); margin-top: 1px }
-.c-impact { font-size: .66rem; margin-top: 3px }
-
-/* Temp */
-.temp-g { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px }
-.temp-b { background: var(--d2); border-radius: 10px; padding: 12px; text-align: center }
-.tv { font-family: var(--fm); font-size: 1.6rem; font-weight: 500; line-height: 1 }
-.tl { font-size: .6rem; color: var(--ts); margin-top: 3px }
-.th { font-size: .63rem; color: var(--ts); margin-top: 5px; line-height: 1.35 }
-
-/* UV */
-.uv-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px }
-.uv-n { font-family: var(--fm); font-size: 2.2rem; font-weight: 500; line-height: 1 }
-.uv-badge {
-  font-family: var(--fh); font-size: .72rem;
-  font-weight: 700; letter-spacing: .05em;
-  padding: 5px 12px; border-radius: 6px; border: 1px solid;
-}
-.uv-t { height: 7px; border-radius: 4px; background: linear-gradient(to right,#00e5a0,#c6e03b,#ff9800,#f44336,#9c27b0); position: relative }
-.uv-m { position: absolute; top: -4.5px; width: 16px; height: 16px; background: #fff; border-radius: 50%; border: 2.5px solid #000; transform: translateX(-50%); transition: left .7s ease; box-shadow: 0 2px 8px rgba(0,0,0,.4) }
-.uv-sc { display: flex; justify-content: space-between; font-family: var(--fm); font-size: .5rem; color: var(--tm); margin-top: 4px }
-.uv-adv { font-size: .7rem; color: var(--ts); margin-top: 10px; line-height: 1.5 }
-
-/* Forecast */
-.fc-rail { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px }
-.fc-rail::-webkit-scrollbar { display: none }
-.fc-item {
-  flex-shrink: 0; min-width: 66px;
-  background: var(--d2); border: 1px solid var(--edge);
-  border-radius: 12px; padding: 10px 8px;
-  text-align: center; position: relative; overflow: hidden;
-}
-.fc-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px }
-.fc-item.g::before { background: var(--green) }
-.fc-item.y::before { background: var(--amber) }
-.fc-item.r::before { background: var(--red) }
-.fc-item.p::before { background: var(--purple) }
-.fc-t { font-family: var(--fm); font-size: .54rem; color: var(--tm); margin-bottom: 5px }
-.fc-flag-m { width: 9px; height: 13px; border-radius: 2px; margin: 0 auto 5px }
-.fc-item.g .fc-flag-m { background: var(--green) }
-.fc-item.y .fc-flag-m { background: var(--amber) }
-.fc-item.r .fc-flag-m { background: var(--red) }
-.fc-item.p .fc-flag-m { background: var(--purple) }
-.fc-w { font-family: var(--fm); font-size: .9rem; font-weight: 500 }
-.fc-wu { font-size: .5rem; color: var(--ts) }
-.fc-wi { font-size: .6rem; color: var(--ts); margin-top: 2px }
-.fc-lb {
-  font-family: var(--fm); font-size: .5rem;
-  font-weight: 500; letter-spacing: .05em;
-  text-transform: uppercase; margin-top: 5px;
-}
-.fc-item.g .fc-lb { color: var(--green) }
-.fc-item.y .fc-lb { color: var(--amber) }
-.fc-item.r .fc-lb { color: var(--red) }
-.fc-item.p .fc-lb { color: var(--purple) }
-.leg { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px }
-.leg-i { display: flex; align-items: center; gap: 5px; font-family: var(--fm); font-size: .57rem; color: var(--ts) }
-.leg-d { width: 8px; height: 8px; border-radius: 50% }
-
-/* Safety grid */
-.safety-g { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 4px }
-.saf-i { background: var(--d2); border-radius: 10px; padding: 10px 11px; display: flex; gap: 8px; align-items: flex-start }
-.saf-ico { font-size: .88rem; flex-shrink: 0; margin-top: 1px }
-.saf-t { font-size: .68rem; color: var(--ts); line-height: 1.4 }
-.saf-t b { color: var(--tp); display: block; margin-bottom: 1px; font-weight: 500 }
-
-/* ─────────────────────────────────────────
-   GUIDE
-───────────────────────────────────────── */
-.gbtn {
-  width: 100%; background: var(--d1);
-  border: 1px solid var(--edge);
-  border-radius: 16px; padding: 15px 17px;
-  display: flex; justify-content: space-between;
-  align-items: center; margin-bottom: 7px;
-  transition: border-color .2s;
-}
-.gbtn:hover { border-color: var(--edge2) }
-.gbtn-l { display: flex; align-items: center; gap: 10px }
-.g-ico { font-size: 1.1rem }
-.g-ttl { font-family: var(--fh); font-size: .9rem; font-weight: 700; color: var(--tp); text-align: left }
-.g-sub { font-size: .62rem; color: var(--ts); margin-top: 1px; text-align: left }
-.g-arr { font-size: .8rem; color: var(--ts); transition: transform .28s }
-.g-arr.open { transform: rotate(180deg) }
-.gbody { display: none }
-.gbody.open { display: block; animation: fuAnim .3s ease }
-.gsec { background: var(--d1); border: 1px solid var(--edge); border-radius: 14px; overflow: hidden; margin-bottom: 7px }
-.gsec-hd { padding: 13px 15px; border-bottom: 1px solid var(--edge); display: flex; align-items: center; gap: 8px; cursor: pointer }
-.gsec-ico { font-size: .95rem }
-.gsec-ttl { font-family: var(--fh); font-size: .84rem; font-weight: 700; flex: 1 }
-.gsec-chev { font-size: .7rem; color: var(--ts); transition: transform .25s }
-.gsec-chev.open { transform: rotate(180deg) }
-.gsec-body { display: none; padding: 0 15px 13px }
-.gsec-body.open { display: block }
-.gtable { width: 100%; border-collapse: collapse; margin-top: 10px }
-.gtable th { font-family: var(--fm); font-size: .5rem; letter-spacing: .15em; text-transform: uppercase; color: var(--ts); padding: 7px 9px; text-align: left; border-bottom: 1px solid var(--edge) }
-.gtable td { padding: 8px 9px; font-size: .72rem; border-bottom: 1px solid rgba(255,255,255,.03); line-height: 1.4; vertical-align: top }
-.gtable tr:last-child td { border-bottom: none }
-.gtable td:first-child { font-family: var(--fm); font-size: .7rem; white-space: nowrap }
+/* ══════════════ GUIDE ══════════════ */
+.gbtn{width:100%;background:var(--d1);border:1px solid var(--edge);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;transition:border-color .2s}
+.gbtn:hover{border-color:var(--edge2)}
+.gbtn-l{display:flex;align-items:center;gap:9px}
+.g-ico{font-size:1.05rem}
+.g-ttl{font-family:var(--fh);font-size:.88rem;font-weight:700;color:var(--tp);text-align:left}
+.g-sub{font-size:.62rem;color:var(--ts);margin-top:1px;text-align:left}
+.g-arr{font-size:.78rem;color:var(--ts);transition:transform .28s}
+.g-arr.open{transform:rotate(180deg)}
+.gbody{display:none}
+.gbody.open{display:block;animation:fuA .28s ease}
+@keyframes fuA{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.gsec{background:var(--d1);border:1px solid var(--edge);border-radius:12px;overflow:hidden;margin-bottom:7px}
+.gsec-hd{padding:12px 14px;border-bottom:1px solid var(--edge);display:flex;align-items:center;gap:8px;cursor:pointer}
+.gsec-ico{font-size:.92rem}
+.gsec-ttl{font-family:var(--fh);font-size:.83rem;font-weight:700;flex:1}
+.gsec-ch{font-size:.7rem;color:var(--ts);transition:transform .25s}
+.gsec-ch.open{transform:rotate(180deg)}
+.gsec-body{display:none;padding:0 14px 12px}
+.gsec-body.open{display:block}
+.gtable{width:100%;border-collapse:collapse;margin-top:9px}
+.gtable th{font-family:var(--fm);font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ts);padding:6px 8px;text-align:left;border-bottom:1px solid var(--edge)}
+.gtable td{padding:7px 8px;font-size:.71rem;border-bottom:1px solid rgba(255,255,255,.03);line-height:1.4;vertical-align:top}
+.gtable tr:last-child td{border-bottom:none}
+.gtable td:first-child{font-family:var(--fm);font-size:.69rem;white-space:nowrap}
 .cg{color:var(--green)}.cy{color:var(--amber)}.cr{color:var(--red)}.cp{color:var(--purple)}.cn{color:var(--ts)}
-.ghlt { padding: 9px 12px; background: rgba(0,212,255,.05); border-left: 2px solid rgba(0,212,255,.25); border-radius: 0 7px 7px 0; margin-top: 10px; font-size: .7rem; color: var(--ts); line-height: 1.55 }
-.ghlt b { color: var(--tp); font-weight: 500 }
-.sg-g { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-top: 10px }
-.sg { text-align: center; padding: 11px 5px; border-radius: 9px; border: 1px solid }
+.ghlt{padding:9px 11px;background:rgba(0,212,255,.05);border-left:2px solid rgba(0,212,255,.24);border-radius:0 7px 7px 0;margin-top:9px;font-size:.69rem;color:var(--ts);line-height:1.55}
+.ghlt b{color:var(--tp);font-weight:500}
+.sg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:9px}
+.sg{text-align:center;padding:10px 5px;border-radius:8px;border:1px solid}
 .sg.g{border-color:rgba(0,229,160,.28);background:rgba(0,229,160,.06)}
 .sg.y{border-color:rgba(255,167,38,.28);background:rgba(255,167,38,.06)}
 .sg.r{border-color:rgba(255,61,90,.28);background:rgba(255,61,90,.06)}
-.sg-n { font-family: var(--fh); font-size: .95rem; font-weight: 800 }
+.sg-n{font-family:var(--fh);font-size:.93rem;font-weight:800}
 .sg.g .sg-n{color:var(--green)}.sg.y .sg-n{color:var(--amber)}.sg.r .sg-n{color:var(--red)}
-.sg-l { font-size: .6rem; color: var(--ts); margin-top: 2px }
-.sg-h { font-size: .58rem; margin-top: 3px; line-height: 1.3 }
+.sg-l{font-size:.59rem;color:var(--ts);margin-top:2px}
+.sg-h{font-size:.57rem;margin-top:3px;line-height:1.3}
 .sg.g .sg-h{color:rgba(0,229,160,.6)}.sg.y .sg-h{color:rgba(255,167,38,.6)}.sg.r .sg-h{color:rgba(255,61,90,.6)}
 
-/* ─────────────────────────────────────────
-   BOTTOM BAR
-───────────────────────────────────────── */
-.bbar {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  z-index: 200;
-  background: rgba(2,12,26,.95);
-  backdrop-filter: blur(24px);
-  border-top: 1px solid var(--edge);
-  padding: 10px 18px;
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  display: flex; align-items: center; justify-content: space-between;
-}
-.bb-inf { font-family: var(--fm); font-size: .55rem; color: var(--ts); line-height: 1.65 }
-.bb-inf span { color: var(--cyan) }
-.rfbtn {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--d2); border: 1px solid var(--edge);
-  border-radius: 8px; color: var(--cyan);
-  font-family: var(--fm); font-size: .58rem;
-  letter-spacing: .1em; text-transform: uppercase;
-  padding: 10px 16px; min-height: 44px;
-  transition: all .2s;
-}
-.rfbtn:active { transform: scale(.95) }
-.rfbtn:hover { background: var(--cyan); color: #000 }
-.rfbtn svg { width: 11px; height: 11px; flex-shrink: 0 }
-.rfbtn.spin svg { animation: spin .5s linear infinite }
-@keyframes spin { to { transform: rotate(360deg) } }
-
-/* Offline banner */
-.offline-bar {
-  position: fixed; top: 0; left: 0; right: 0;
-  background: var(--amber); color: #000;
-  font-family: var(--fm); font-size: .62rem;
-  letter-spacing: .08em; text-transform: uppercase;
-  text-align: center; padding: 8px 16px;
-  z-index: 300; transform: translateY(-100%);
-  transition: transform .3s ease;
-}
-.offline-bar.show { transform: translateY(0) }
+/* ══════════════ BOTTOM BAR ══════════════ */
+.bbar{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(2,12,26,.96);backdrop-filter:blur(24px);border-top:1px solid var(--edge);padding:9px 16px;padding-bottom:calc(9px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between}
+.bb-inf{font-family:var(--fm);font-size:.55rem;color:var(--ts);line-height:1.65}
+.bb-inf span{color:var(--cyan)}
+.rfbtn{display:flex;align-items:center;gap:6px;background:var(--d2);border:1px solid var(--edge);border-radius:8px;color:var(--cyan);font-family:var(--fm);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;padding:10px 15px;min-height:44px;transition:all .2s}
+.rfbtn:active{transform:scale(.95)}
+.rfbtn:hover{background:var(--cyan);color:#000}
+.rfbtn svg{width:11px;height:11px;flex-shrink:0}
+.rfbtn.spin svg{animation:spin .5s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* Error */
-.err-scr {
-  min-height: 60dvh; display: flex;
-  flex-direction: column; align-items: center;
-  justify-content: center; text-align: center;
-  padding: 40px 20px;
-}
-.err-ico { font-size: 2rem; margin-bottom: 12px; opacity: .5 }
-.err-ttl { font-family: var(--fh); font-size: 1.2rem; font-weight: 700; margin-bottom: 6px }
-.err-sub { font-family: var(--fm); font-size: .65rem; color: var(--ts) }
+.err-s{min-height:50dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+.err-ico{font-size:2rem;margin-bottom:12px;opacity:.5}
+.err-ttl{font-family:var(--fh);font-size:1.1rem;font-weight:700;margin-bottom:5px}
+.err-sub{font-family:var(--fm);font-size:.63rem;color:var(--ts)}
 
-/* Animations */
-@keyframes fuAnim { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-.fu { animation: fuAnim .32s ease both }
+/* fade in */
+@keyframes fu{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fu .3s ease both}
 .fu1{animation-delay:.04s}.fu2{animation-delay:.08s}.fu3{animation-delay:.12s}
 .fu4{animation-delay:.16s}.fu5{animation-delay:.20s}.fu6{animation-delay:.24s}
+
+/* bottom padding */
+.pb{height:20px}
 </style>
 </head>
 <body>
 
-<!-- Grain -->
-<div id="grain"></div>
-
-<!-- Wave bg -->
+<!-- Background waves -->
 <canvas id="wvc"></canvas>
-
 <!-- Atmosphere glow -->
-<div class="atm-glow" id="atmGlow"></div>
+<div class="atm" id="atm"></div>
 
-<!-- Loader -->
+<!-- LOADER -->
 <div id="loader">
   <div class="ld-logo">OW<span> Lima</span></div>
-  <div class="ld-wave"></div>
+  <div class="ld-bar"></div>
   <div class="ld-txt">Cargando datos del mar</div>
 </div>
 
-<!-- Offline banner -->
-<div class="offline-bar" id="offlineBanner">Sin conexión — mostrando últimos datos</div>
-
-<!-- Beach Rail (fixed top) -->
-<nav class="bnav">
-  <div class="bnav-inner">
+<!-- ═══ TOP NAV — 2 filas ═══ -->
+<nav class="topnav">
+  <!-- Fila 1: brand + nivel -->
+  <div class="nav-r1">
     <div class="brand">OW<span> Lima</span></div>
-    <div class="bscroll" id="bRail"></div>
     <div class="lv-wrap" id="lvWrap">
-      <button class="lv" data-lv="beginner" onclick="setLevel('beginner')">Prin</button>
+      <button class="lv" data-lv="beginner"     onclick="setLevel('beginner')">Prin</button>
       <button class="lv on" data-lv="intermediate" onclick="setLevel('intermediate')">Inter</button>
-      <button class="lv" data-lv="advanced" onclick="setLevel('advanced')">Avanz</button>
+      <button class="lv" data-lv="advanced"     onclick="setLevel('advanced')">Avanz</button>
     </div>
+  </div>
+  <!-- Fila 2: beach tabs -->
+  <div class="nav-r2">
+    <div class="bscroll" id="bRail"></div>
   </div>
 </nav>
 
-<!-- Main -->
-<div id="app"></div>
+<!-- MAIN -->
+<div class="main" id="app"></div>
 
-<!-- Bottom bar -->
+<!-- BOTTOM BAR -->
 <div class="bbar">
   <div class="bb-inf">
     <div>Open-Meteo Marine API</div>
@@ -831,51 +473,29 @@ button { font-family: inherit; cursor: pointer; border: none; background: none }
 </div>
 
 <script>
-/* ══════════════════════════════════════
-   BEACHES
-══════════════════════════════════════ */
-const BEACHES = [
-  {id:'herradura', name:'La Herradura', short:'Herradura',
-   lat:-12.1547,lon:-77.0435,district:'Chorrillos',digesa:'ok',
-   note:'Bahía semiabierta. Aguas protegidas. Ideal para entrenamiento en circuito.'},
-  {id:'pescadores',name:'Pescadores',short:'Pescadores',
-   lat:-12.1670,lon:-77.0196,district:'Chorrillos',digesa:'ok',
-   note:'Vigilada por la Marina. Menor afluencia. Buena visibilidad.'},
-  {id:'aguadulce',name:'Agua Dulce',short:'Agua Dulce',
-   lat:-12.1611,lon:-77.0234,district:'Chorrillos',digesa:'nd',
-   note:'La más concurrida de Lima. Salvavidas presentes.'},
-  {id:'yuyos',name:'Yuyos',short:'Yuyos',
-   lat:-12.1582,lon:-77.0210,district:'Chorrillos',digesa:'bad',
-   note:'Fondo parcialmente rocoso. Revisar estado sanitario.'},
-  {id:'sombrillas',name:'Sombrillas',short:'Sombrillas',
-   lat:-12.1573,lon:-77.0201,district:'Chorrillos',digesa:'ok',
-   note:'Contigua a Agua Dulce. Algo más tranquila.'},
+/* ═══════════ BEACHES ═══════════ */
+const BEACHES=[
+  {id:'herradura', name:'La Herradura',short:'Herradura', lat:-12.1547,lon:-77.0435,district:'Chorrillos',digesa:'ok',  note:'Bahía semiabierta. Aguas protegidas. Ideal para circuito.'},
+  {id:'pescadores',name:'Pescadores',  short:'Pescadores',lat:-12.1670,lon:-77.0196,district:'Chorrillos',digesa:'ok',  note:'Vigilada por la Marina. Menor afluencia. Buena visibilidad.'},
+  {id:'aguadulce', name:'Agua Dulce',  short:'Agua Dulce',lat:-12.1611,lon:-77.0234,district:'Chorrillos',digesa:'nd',  note:'La más concurrida de Lima. Salvavidas presentes.'},
+  {id:'yuyos',     name:'Yuyos',       short:'Yuyos',     lat:-12.1582,lon:-77.0210,district:'Chorrillos',digesa:'bad', note:'Fondo parcialmente rocoso. Revisar estado sanitario.'},
+  {id:'sombrillas', name:'Sombrillas', short:'Sombrillas', lat:-12.1573,lon:-77.0201,district:'Chorrillos',digesa:'ok',  note:'Contigua a Agua Dulce. Algo más tranquila.'},
 ];
-
-const DIGESA_MAP = {
-  ok:  {cls:'ok',  icon:'✅',t:'Saludable — DIGESA',   s:'Agua apta · Arena limpia · SSHH disponibles'},
-  bad: {cls:'bad', icon:'🚫',t:'No Saludable — DIGESA',s:'No cumple criterios sanitarios oficiales'},
-  nd:  {cls:'nd',  icon:'⚪',t:'Sin datos — DIGESA',   s:'Verificar en veranosaludable.minsa.gob.pe'},
+const DIGESA_MAP={
+  ok: {cls:'ok', icon:'✅',t:'Saludable — DIGESA',   s:'Agua apta · Arena limpia · SSHH'},
+  bad:{cls:'bad',icon:'🚫',t:'No Saludable — DIGESA',s:'No cumple criterios sanitarios'},
+  nd: {cls:'nd', icon:'⚪',t:'Sin datos — DIGESA',   s:'Verificar: veranosaludable.minsa.gob.pe'},
 };
-
-const LEVEL_THR = {
+const LEVEL_THR={
   beginner:    {wave:.7, wind:12, label:'Principiante'},
   intermediate:{wave:1.0,wind:15, label:'Intermedio'},
   advanced:    {wave:1.4,wind:20, label:'Avanzado'},
 };
 
-/* ══════════════════════════════════════
-   STATE
-══════════════════════════════════════ */
+/* ═══════════ STATE ═══════════ */
 let active=0, level='intermediate', cache={};
-let isOnline=navigator.onLine;
 
-window.addEventListener('online',  ()=>{ isOnline=true;  document.getElementById('offlineBanner').classList.remove('show') });
-window.addEventListener('offline', ()=>{ isOnline=false; document.getElementById('offlineBanner').classList.add('show') });
-
-/* ══════════════════════════════════════
-   FETCH
-══════════════════════════════════════ */
+/* ═══════════ FETCH ═══════════ */
 async function fetchBeach(b){
   const{lat,lon}=b;
   const[mr,wr]=await Promise.all([
@@ -885,9 +505,7 @@ async function fetchBeach(b){
   return{marine:await mr.json(),weather:await wr.json()};
 }
 
-/* ══════════════════════════════════════
-   SCORE ENGINE
-══════════════════════════════════════ */
+/* ═══════════ SCORE ═══════════ */
 function calcScore(wh,wp,ws,uv){
   let s=100;
   if(wh>2.5)s-=50;else if(wh>1.8)s-=30;else if(wh>1.2)s-=15;else if(wh>0.7)s-=5;
@@ -901,21 +519,21 @@ function scoreFromData(d){
   return calcScore(m.wave_height??1.5,m.wave_period??8,w.wind_speed_10m??15,w.uv_index??5);
 }
 function getVerdict(s){
-  if(s>=75)return{txt:'APTO PARA NADAR',   phrase:'Sí, puedes nadar hoy',         col:'var(--green)', key:'green',atm:'#003d22'};
-  if(s>=50)return{txt:'PRECAUCIÓN',         phrase:'Evalúa antes de entrar',       col:'var(--amber)', key:'amber',atm:'#3d2800'};
-  return        {txt:'NO RECOMENDADO',      phrase:'Evita ingresar hoy',           col:'var(--red)',   key:'red',  atm:'#3d0010'};
+  if(s>=75)return{txt:'APTO PARA NADAR',  phrase:'Sí, puedes nadar hoy',       col:'var(--green)',atm:'#003d20'};
+  if(s>=50)return{txt:'PRECAUCIÓN',        phrase:'Evalúa antes de entrar',     col:'var(--amber)',atm:'#3d2600'};
+  return        {txt:'NO RECOMENDADO',     phrase:'Evita ingresar hoy',         col:'var(--red)',  atm:'#3d0010'};
 }
 
-/* ══════════════════════════════════════
-   FLAG SYSTEM
-══════════════════════════════════════ */
-function getFlag(score,digesaStatus){
-  if(digesaStatus==='bad')return{key:'purple',col:'var(--purple)',label:'Bandera Morada',reason:'Condición sanitaria no apta según DIGESA.',action:'No ingresar — riesgo de infección.'};
-  if(score>=75)return{key:'green', col:'var(--green)',label:'Bandera Verde',  reason:'Condiciones favorables en todos los parámetros.',action:'Buen momento para nadar.'};
-  if(score>=50)return{key:'yellow',col:'var(--amber)',label:'Bandera Amarilla',reason:'',action:'Entra con precaución y evalúa tu nivel.'};
-  return             {key:'red',   col:'var(--red)',  label:'Bandera Roja',   reason:'',action:'Evita ingresar al mar hoy.'};
+/* ═══════════ FLAG ═══════════ */
+function getFlag(sc,dgStatus){
+  if(dgStatus==='bad')return{key:'purple',col:'var(--purple)',label:'Bandera Morada',action:'No ingresar — riesgo sanitario activo.'};
+  if(sc>=75)return{key:'green', col:'var(--green)',label:'Bandera Verde',  action:'Buen momento para nadar.'};
+  if(sc>=50)return{key:'yellow',col:'var(--amber)',label:'Bandera Amarilla',action:'Entra con precaución según tu nivel.'};
+  return         {key:'red',   col:'var(--red)',  label:'Bandera Roja',   action:'Evita ingresar al mar hoy.'};
 }
-function buildFlagReason(d){
+function buildFlagReason(d,sc){
+  /* Solo mostrar razones negativas si las hay; si todo ok, decir condición favorable */
+  if(sc>=75)return'Condiciones favorables en todos los parámetros.';
   const wh=d.marine.current?.wave_height??0;
   const ws=d.weather.current?.wind_speed_10m??0;
   const uv=d.weather.current?.uv_index??0;
@@ -925,12 +543,10 @@ function buildFlagReason(d){
   if(ws>=25)p.push('viento fuerte');else if(ws>=15)p.push('viento con deriva');
   if(sw>=1.5)p.push(`swell ${sw.toFixed(1)}m`);
   if(uv>=8)p.push('UV muy alta');
-  return p.length?'Precaución por '+p.join(', ')+'.':'Condiciones favorables.';
+  return p.length?'Precaución por '+p.join(', ')+'.':'Condición marginal — revisa los datos.';
 }
 
-/* ══════════════════════════════════════
-   ALERTS ENGINE
-══════════════════════════════════════ */
+/* ═══════════ ALERTS ═══════════ */
 function generateAlerts(d,lv){
   const thr=LEVEL_THR[lv];
   const hwh=d.marine.hourly?.wave_height??[];
@@ -938,18 +554,14 @@ function generateAlerts(d,lv){
   const huv=d.weather.hourly?.uv_index??[];
   const hwp=d.marine.hourly?.wave_period??[];
   const alerts=[];
-
-  // Risk first
   const cWh=d.marine.current?.wave_height??0;
   const cWs=d.weather.current?.wind_speed_10m??0;
   if(cWh>2.0||cWs>30){
     alerts.push({col:'ac-red',ico:'⚠️',
       ttl:'Condición de riesgo activa',
-      msg:`Oleaje ${cWh.toFixed(2)}m y viento ${Math.round(cWs)} km/h — condiciones peligrosas ahora.`,
-      act:'No ingresar al agua en este momento.'});
+      msg:`Oleaje ${cWh.toFixed(2)}m y viento ${Math.round(cWs)} km/h — peligroso ahora.`,
+      act:'No ingresar al agua.'});
   }
-
-  // Best window
   const good=[];
   for(let h=5;h<=18;h++){if((hwh[h]??99)<thr.wave&&(hws[h]??99)<thr.wind)good.push(h);}
   if(good.length){
@@ -961,88 +573,61 @@ function generateAlerts(d,lv){
     alerts.push({col:'ac-green',ico:'⏰',
       ttl:'Mejor momento hoy',
       msg:`${r} — condiciones aptas para ${thr.label.toLowerCase()}.`,
-      act:good[0]<10?'Nada temprano para aprovechar la ventana.':'Espera a '+fmt(good[0])+'.'});
+      act:good[0]<10?'Nada temprano.':'Espera a '+fmt(good[0])+'.'});
   } else {
     alerts.push({col:'ac-amber',ico:'📵',
       ttl:'Sin ventana óptima',
-      msg:`No se proyectan condiciones adecuadas para ${thr.label.toLowerCase()} hoy.`,
-      act:'Considera volver mañana o elegir otra playa.'});
+      msg:`Sin condiciones adecuadas para ${thr.label.toLowerCase()} hoy.`,
+      act:'Considera volver mañana.'});
   }
-
-  // Trend
   const sc2=h=>calcScore(hwh[h]??1.5,hwp[h]??8,hws[h]??15,huv[h]??5);
-  const morning=[],afternoon=[];
-  for(let h=6;h<12;h++)morning.push(sc2(h));
-  for(let h=12;h<18;h++)afternoon.push(sc2(h));
-  const avgM=morning.reduce((a,b)=>a+b,0)/morning.length||50;
-  const avgA=afternoon.reduce((a,b)=>a+b,0)/afternoon.length||50;
+  const m2=[],a2=[];
+  for(let h=6;h<12;h++)m2.push(sc2(h));
+  for(let h=12;h<18;h++)a2.push(sc2(h));
+  const avgM=m2.reduce((a,b)=>a+b,0)/m2.length||50;
+  const avgA=a2.reduce((a,b)=>a+b,0)/a2.length||50;
   const diff=avgA-avgM;
-  if(diff>8)alerts.push({col:'ac-cyan',ico:'📈',
-    ttl:'Mejora por la tarde',
-    msg:`Condiciones más favorables después de las 12:00 (+${Math.round(diff)} puntos estimados).`,
-    act:'Si puedes, espera a la tarde.'});
-  else if(diff<-8)alerts.push({col:'ac-amber',ico:'📉',
-    ttl:'Empeora por la tarde',
-    msg:`El oleaje o viento aumenta después de las 12:00 (variación ${Math.round(diff)} puntos).`,
-    act:'Prioriza nadar en la mañana.'});
-
-  // Today vs tomorrow
-  const td=[],tm=[];
-  for(let h=6;h<18;h++)td.push(sc2(h));
-  for(let h=30;h<42;h++)tm.push(calcScore(hwh[h]??1.5,hwp[h]??8,hws[h]??15,huv[h]??5));
-  const avgT=td.reduce((a,b)=>a+b,0)/td.length||50;
-  const avgN=tm.reduce((a,b)=>a+b,0)/tm.length||50;
-  const dd=avgN-avgT;
-  if(dd>8)alerts.push({col:'ac-cyan',ico:'🌊',
-    ttl:'Mañana será mejor',
-    msg:`Score promedio mañana: ${Math.round(avgN)} vs hoy: ${Math.round(avgT)}.`,
-    act:'Vale la pena esperar a mañana temprano.'});
-  else if(dd<-8)alerts.push({col:'ac-green',ico:'✅',
-    ttl:'Hoy es mejor que mañana',
-    msg:`Aprovecha hoy (score ${Math.round(avgT)}) — mañana bajan las condiciones.`,
-    act:'No dejes para mañana si hay ventana hoy.'});
-
+  if(diff>8)alerts.push({col:'ac-cyan',ico:'📈',ttl:'Mejora por la tarde',msg:`Condiciones más favorables después de las 12:00 (+${Math.round(diff)} pts).`,act:'Espera a la tarde si puedes.'});
+  else if(diff<-8)alerts.push({col:'ac-amber',ico:'📉',ttl:'Empeora por la tarde',msg:`El mar se complica después de las 12:00 (${Math.round(diff)} pts).`,act:'Prioriza la mañana.'});
   return alerts.slice(0,3);
 }
 
-/* ══════════════════════════════════════
-   HELPERS
-══════════════════════════════════════ */
+/* ═══════════ HELPERS ═══════════ */
 function compass(d){const D=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];return D[Math.round(d/22.5)%16]}
 function waveInfo(h){
-  if(h<0.3)return{txt:'Plana',       who:'Todos los niveles',       col:'var(--green)'};
-  if(h<0.6)return{txt:'Muy calma',   who:'Todos los niveles',       col:'var(--green)'};
-  if(h<1.0)return{txt:'Ligera',      who:'Principiante–Avanzado',   col:'var(--green)'};
-  if(h<1.5)return{txt:'Moderada',    who:'Intermedio–Avanzado',     col:'var(--amber)'};
-  if(h<2.0)return{txt:'Importante',  who:'Solo avanzados',          col:'var(--amber)'};
-  if(h<2.5)return{txt:'Fuerte',      who:'No recomendado',          col:'var(--red)'};
-  return        {txt:'Muy fuerte',   who:'🚨 Peligroso',             col:'var(--red)'};
+  if(h<0.3)return{txt:'Plana',      who:'Todos los niveles',         col:'var(--green)'};
+  if(h<0.6)return{txt:'Muy calma',  who:'Todos los niveles',         col:'var(--green)'};
+  if(h<1.0)return{txt:'Ligera',     who:'Principiante – Avanzado',   col:'var(--green)'};
+  if(h<1.5)return{txt:'Moderada',   who:'Intermedio – Avanzado',     col:'var(--amber)'};
+  if(h<2.0)return{txt:'Importante', who:'Solo avanzados',            col:'var(--amber)'};
+  if(h<2.5)return{txt:'Fuerte',     who:'No recomendado',            col:'var(--red)'};
+  return        {txt:'Muy fuerte',  who:'🚨 Peligroso',               col:'var(--red)'};
 }
 function windInfo(w){
-  if(w<5) return{txt:'Calma',          impact:'Sin impacto',            col:'var(--green)'};
-  if(w<15)return{txt:'Brisa suave',    impact:'Impacto mínimo',         col:'var(--green)'};
-  if(w<25)return{txt:'Brisa fresca',   impact:'Deriva lateral leve',    col:'var(--amber)'};
-  if(w<35)return{txt:'Viento fuerte',  impact:'Deriva significativa',   col:'var(--amber)'};
-  return       {txt:'Muy fuerte',      impact:'⚠ Peligroso para nadar', col:'var(--red)'};
+  if(w<5) return{txt:'Calma',         impact:'Sin impacto',            col:'var(--green)'};
+  if(w<15)return{txt:'Brisa suave',   impact:'Impacto mínimo',         col:'var(--green)'};
+  if(w<25)return{txt:'Brisa fresca',  impact:'Deriva lateral leve',    col:'var(--amber)'};
+  if(w<35)return{txt:'Fuerte',        impact:'Deriva significativa',   col:'var(--amber)'};
+  return       {txt:'Muy fuerte',     impact:'⚠ Peligroso',            col:'var(--red)'};
 }
 function uvInfo(uv){
-  if(uv<=2) return{cat:'Bajo',     col:'#00e5a0',adv:'Sin restricciones. Protector básico.'};
-  if(uv<=5) return{cat:'Moderado', col:'#c6e03b',adv:'FPS 30+ resistente al agua y lentes UV400.'};
-  if(uv<=7) return{cat:'Alto',     col:'#ff9800',adv:'FPS 50+ obligatorio. Evita 10am–2pm.'};
-  if(uv<=10)return{cat:'Muy Alto', col:'#f44336',adv:'⚠ FPS 50+ y gorra. Limita exposición.'};
-  return         {cat:'Extremo',   col:'#9c27b0',adv:'🚨 Nada antes de las 8am. Protección máxima.'};
+  if(uv<=2)return{cat:'Bajo',    col:'#00e5a0',adv:'Sin restricciones. Protector básico.'};
+  if(uv<=5)return{cat:'Moderado',col:'#c6e03b',adv:'FPS 30+ resistente al agua y lentes UV400.'};
+  if(uv<=7)return{cat:'Alto',    col:'#ff9800',adv:'FPS 50+ obligatorio. Evita 10am–2pm.'};
+  if(uv<=10)return{cat:'Muy Alto',col:'#f44336',adv:'⚠ FPS 50+ y gorra. Limita exposición.'};
+  return          {cat:'Extremo', col:'#9c27b0',adv:'🚨 Nada antes de las 8am. Protección máxima.'};
 }
 function thermoInfo(t){
-  if(t<17)return{emoji:'🥶',hint:`Traje 5mm necesario`};
-  if(t<20)return{emoji:'🌊',hint:`Traje 3mm recomendado`};
-  if(t<23)return{emoji:'✅',hint:`Sin traje, agradable`};
-  return       {emoji:'☀️',hint:`Agua cálida`};
+  if(t<17)return{emoji:'🥶',hint:'Traje 5mm necesario'};
+  if(t<20)return{emoji:'🌊',hint:'Traje 3mm recomendado'};
+  if(t<23)return{emoji:'✅',hint:'Sin traje, agradable'};
+  return       {emoji:'☀️',hint:'Agua cálida'};
 }
 function periodInfo(p){
-  if(p<6) return'Muy corto — olas caóticas, alta fatiga';
-  if(p<8) return'Corto — frecuentes, requiere más técnica';
-  if(p<12)return'Regular — manejable, ritmo predecible';
-  return      'Largo — olas bien formadas, predecible';
+  if(p<6) return'Muy corto — olas caóticas';
+  if(p<8) return'Corto — frecuentes';
+  if(p<12)return'Regular — manejable';
+  return      'Largo — predecible';
 }
 function getTags(d){
   const wh=d.marine.current?.wave_height??0,sw=d.marine.current?.swell_wave_height??0;
@@ -1068,396 +653,62 @@ function fcClass(wh,ws,dgBad){
 }
 const fcLabel=c=>({g:'Óptimo',y:'Precaución',r:'Adverso',p:'No sanitario'}[c]);
 
-/* ══════════════════════════════════════
-   RENDER RAIL
-══════════════════════════════════════ */
+/* ═══════════ RENDER RAIL ═══════════ */
 function renderRail(){
   const r=document.getElementById('bRail');
   r.innerHTML=BEACHES.map((b,i)=>{
     const s=cache[b.id]?scoreFromData(cache[b.id]):null;
-    const f=s===null?{key:'yellow'}:getFlag(s,b.digesa);
+    const f=s===null?{key:'grey'}:getFlag(s,b.digesa);
     const on=i===active;
     return`<button class="btab${on?' on':''}" onclick="pick(${i})" aria-label="${b.name}">
-      <span class="btab-flag mflag ${f.key}" style="${on?'opacity:.5':''}"></span>
+      <span class="btab-flag f-${f.key}"></span>
       <span class="btab-nm">${b.short}</span>
     </button>`;
   }).join('');
 }
-/* mini flag for rail (inside btab) */
-const styleEl=document.createElement('style');
-styleEl.textContent=`.mflag.green{background:var(--green)}.mflag.yellow{background:var(--amber)}.mflag.red{background:var(--red)}.mflag.purple{background:var(--purple)}`;
-document.head.appendChild(styleEl);
 
-/* ══════════════════════════════════════
-   UPDATE ATMOSPHERE
-══════════════════════════════════════ */
-function setAtmosphere(vd){
-  const g=document.getElementById('atmGlow');
-  g.style.background=vd.atm;
-  g.style.opacity='.18';
+/* ═══════════ ATMOSPHERE ═══════════ */
+function setAtm(vd){
+  document.getElementById('atm').style.background=vd.atm;
 }
 
-/* ══════════════════════════════════════
-   BUILD HERO CANVAS (ocean simulation)
-══════════════════════════════════════ */
-function buildHeroCanvas(beach,wh,sc){
-  return`<canvas id="hc" class="hero-canvas"></canvas>`;
-}
-
-/* ══════════════════════════════════════
-   RENDER PAGE
-══════════════════════════════════════ */
-function renderPage(beach,d){
-  const sc =scoreFromData(d);
-  const vd =getVerdict(sc);
-  const flag=getFlag(sc,beach.digesa);
-  const flagR=buildFlagReason(d);
-  const dg =DIGESA_MAP[beach.digesa];
-  const m  =d.marine.current??{};
-  const w  =d.weather.current??{};
-
-  const wh  =+(m.wave_height??0).toFixed(2);
-  const wp  =+(m.wave_period??0).toFixed(1);
-  const wvd =+(m.wave_direction??0);
-  const wwh =+(m.wind_wave_height??0).toFixed(2);
-  const wwp =+(m.wind_wave_period??0).toFixed(1);
-  const swh =+(m.swell_wave_height??0).toFixed(2);
-  const swd =+(m.swell_wave_direction??0);
-  const swp =+(m.swell_wave_period??0).toFixed(1);
-  const sst =+(m.sea_surface_temperature??0).toFixed(1);
-  const air =+(w.temperature_2m??0).toFixed(1);
-  const wsp =+(w.wind_speed_10m??0);
-  const wdi =+(w.wind_direction_10m??0);
-  const uv  =+(w.uv_index??0);
-
-  const wi =waveInfo(wh);
-  const wii=windInfo(wsp);
-  const uvi=uvInfo(uv);
-  const thi=thermoInfo(+sst);
-  const tags=getTags(d);
-  const als=generateAlerts(d,level);
-
-  // Best time
-  const thr=LEVEL_THR[level];
-  const hwh2=d.marine.hourly?.wave_height??[];
-  const hws2=d.weather.hourly?.wind_speed_10m??[];
-  const good2=[];
-  for(let h=5;h<=18;h++){if((hwh2[h]??99)<thr.wave&&(hws2[h]??99)<thr.wind)good2.push(h);}
-  let bestStr=null;
-  if(good2.length){
-    const fmt=h=>String(h).padStart(2,'0')+':00';
-    const segs=[];let a=good2[0],b=good2[0];
-    for(let i=1;i<good2.length;i++){if(good2[i]===b+1){b=good2[i];}else{segs.push([a,b]);a=b=good2[i];}}
-    segs.push([a,b]);
-    bestStr=segs.map(([a,b])=>a===b?fmt(a):`${fmt(a)}–${fmt(b+1)}`).join(', ');
-  }
-
-  // Wave fill
-  const wfp=Math.min(100,(wh/3)*100);
-  const wfc=wh<1.0?'var(--green)':wh<1.8?'var(--amber)':'var(--red)';
-
-  // Score ring
-  const circ=2*Math.PI*46;
-  const offset=circ-(sc/100)*circ;
-
-  // Compass
-  const na=wdi-180;
-  const cSVG=`<svg class="compass-svg" viewBox="0 0 60 60" fill="none">
-    <circle cx="30" cy="30" r="29" fill="var(--d2)" stroke="var(--edge)" stroke-width="1"/>
-    <text x="30" y="10" text-anchor="middle" fill="#3d627c" font-size="6" font-family="DM Mono,monospace">N</text>
-    <text x="30" y="55" text-anchor="middle" fill="#3d627c" font-size="6" font-family="DM Mono,monospace">S</text>
-    <text x="7"  y="33" text-anchor="middle" fill="#3d627c" font-size="6" font-family="DM Mono,monospace">O</text>
-    <text x="53" y="33" text-anchor="middle" fill="#3d627c" font-size="6" font-family="DM Mono,monospace">E</text>
-    <g transform="translate(30,30) rotate(${na})">
-      <polygon points="0,-14 2.5,0 0,4 -2.5,0" fill="#ff3d5a"/>
-      <polygon points="0,14 2.5,0 0,-4 -2.5,0" fill="#3d627c"/>
-    </g>
-    <circle cx="30" cy="30" r="3" fill="var(--cyan)"/>
-  </svg>`;
-
-  // Forecast
-  const nowH=new Date().getHours();
-  let fcHtml='';
-  const hwh3=d.marine.hourly?.wave_height??[];
-  const hws3=d.weather.hourly?.wind_speed_10m??[];
-  for(let i=0;i<12;i++){
-    const h=(nowH+i)%24;
-    const fw=+(hwh3[h]??0).toFixed(1);
-    const fw2=Math.round(hws3[h]??0);
-    const cls=fcClass(fw,fw2,beach.digesa==='bad');
-    fcHtml+=`<div class="fc-item ${cls}">
-      <div class="fc-t">${String(h).padStart(2,'0')}:00</div>
-      <div class="fc-flag-m" aria-label="${fcLabel(cls)}"></div>
-      <div class="fc-w">${fw}<span class="fc-wu">m</span></div>
-      <div class="fc-wi">💨${fw2}</div>
-      <div class="fc-lb">${fcLabel(cls)}</div>
-    </div>`;
-  }
-
-  // Flag color for sections
-  const fc2=flag.key==='green'?'var(--green)':flag.key==='yellow'?'var(--amber)':flag.key==='red'?'var(--red)':'var(--purple)';
-
-  setAtmosphere(vd);
-
-  return`
-<!-- ═══ HERO SCREEN ═══ -->
-<section class="hero-screen" id="heroScreen">
-  <canvas id="hc" class="hero-canvas"></canvas>
-
-  <!-- Centered score -->
-  <div class="hero-score-wrap">
-    <div class="hero-score-ring">
-      <svg viewBox="0 0 100 100">
-        <circle class="hsr-bg" cx="50" cy="50" r="46"/>
-        <circle class="hsr-fill" cx="50" cy="50" r="46"
-          stroke="${vd.col}"
-          stroke-dasharray="${circ.toFixed(1)}"
-          stroke-dashoffset="${offset.toFixed(1)}"/>
-      </svg>
-      <div class="score-inner">
-        <div class="score-num" style="color:${vd.col}">${sc}</div>
-        <div class="score-lbl">Score nadador</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom content -->
-  <div class="hero-bottom">
-    <div class="hero-beach-name fu">${beach.name}</div>
-    <div class="hero-verdict-row fu fu1">
-      <span class="verdict-pulse" style="background:${vd.col}"></span>
-      <div>
-        <div class="verdict-label" style="color:${vd.col}">${vd.txt}</div>
-        <div class="verdict-phrase">${vd.phrase} · ${thr.label}</div>
-      </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="hero-kpis fu fu2">
-      <div class="hkpi">
-        <div class="hkv">${wh}<span class="hku">m</span></div>
-        <div class="hkl">Oleaje</div>
-      </div>
-      <div class="hkpi">
-        <div class="hkv">${Math.round(wsp)}<span class="hku">km/h</span></div>
-        <div class="hkl">Viento</div>
-      </div>
-      <div class="hkpi">
-        <div class="hkv" style="color:${uvi.col}">${uv.toFixed(1)}</div>
-        <div class="hkl">UV</div>
-      </div>
-    </div>
-
-    <!-- Wave bar -->
-    <div class="hero-wbar fu fu3">
-      <div class="hwb-head">
-        <span class="hwb-lbl">Nivel de oleaje</span>
-        <span class="hwb-val" style="color:${wfc}">${wh}m</span>
-      </div>
-      <div class="hwb-track">
-        <div class="hwb-fill" style="width:${wfp}%;background:${wfc}"></div>
-      </div>
-      <div class="hwb-meta">
-        <div class="hwb-human" style="color:${wfc}">${wi.txt}</div>
-        <div class="hwb-who">${wi.who}</div>
-      </div>
-    </div>
-
-    <!-- Tags -->
-    <div class="hero-tags fu fu4">
-      ${tags.map(t=>`<span class="tag ${t.c}">${t.x}</span>`).join('')}
-    </div>
-
-    <!-- Flag -->
-    <div class="hero-flag fu fu4" style="border-color:${fc2}22">
-      <div class="hf-pole">
-        <div class="hf-rect ${flag.key}" style="background:${fc2}"></div>
-        <div class="hf-mast"></div>
-      </div>
-      <div class="hf-info">
-        <div class="hf-label" style="color:${fc2}">${flag.label}</div>
-        <div class="hf-reason">${flag.key==='purple'?flag.reason:flagR}</div>
-        <div class="hf-action" style="color:${fc2}">→ ${flag.action}</div>
-      </div>
-    </div>
-
-    <!-- Meta row: best time + digesa -->
-    <div class="hero-meta-row fu fu5">
-      <div class="meta-pill" style="border-color:${bestStr?'rgba(0,229,160,.2)':'rgba(255,167,38,.18)'}">
-        <div class="mp-label">Mejor hora</div>
-        <div class="mp-val" style="color:${bestStr?'var(--green)':'var(--amber)'}">${bestStr||'Sin ventana'}</div>
-        <div class="mp-sub">${thr.label}</div>
-      </div>
-      <div class="meta-pill" style="border-color:${dg.cls==='ok'?'rgba(0,229,160,.2)':dg.cls==='bad'?'rgba(255,61,90,.25)':'rgba(110,148,174,.15)'}">
-        <div class="mp-label">DIGESA</div>
-        <div class="mp-val" style="color:${dg.cls==='ok'?'var(--green)':dg.cls==='bad'?'var(--red)':'var(--ts)'}">${dg.icon} ${dg.cls==='ok'?'Saludable':dg.cls==='bad'?'No Saludable':'Sin datos'}</div>
-        <div class="mp-sub">${dg.cls==='bad'?'No ingresar':'Fuente: MINSA'}</div>
-      </div>
-    </div>
-
-    <!-- Scroll hint -->
-    <div class="scroll-hint">
-      <span>más datos</span>
-      <div class="scroll-chevron"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══ ALERTS ═══ -->
-<div class="alerts-section data-wrap">
-  ${als.length?`<div class="alerts-title">Alertas · ${new Date().toLocaleDateString('es-PE',{weekday:'long'})}</div>`:''}
-  ${als.map(a=>`<div class="alert-card ${a.col} fu">
-    <span class="al-ico">${a.ico}</span>
-    <div class="al-body">
-      <div class="al-ttl">${a.ttl}</div>
-      <div class="al-msg">${a.msg}</div>
-      <div class="al-act">→ ${a.act}</div>
-    </div>
-  </div>`).join('')}
-</div>
-
-<!-- ═══ DATA SECTIONS ═══ -->
-<div class="data-wrap">
-
-  <!-- Oleaje -->
-  <div class="sec fu">
-    <div class="sec-hd"><span class="sec-ico">🌊</span><span class="sec-hd-txt">Oleaje</span></div>
-    <div class="dr"><span class="dk">Altura actual</span><span class="dv">${wh}<span class="du"> m</span></span></div>
-    <div class="scl">
-      <div class="scl-t"><div class="scl-f" style="width:${wfp}%;background:${wfc}"></div></div>
-      <div class="scl-lb"><span>Plana</span><span>0.5m</span><span>1m</span><span>1.5m</span><span>3m+</span></div>
-      <div class="scl-human" style="color:${wfc}">${wi.txt}</div>
-      <div class="scl-who">${wi.who}</div>
-    </div>
-    <div class="dr"><span class="dk">Período</span><span class="dv">${wp}<span class="du"> s</span></span></div>
-    <div class="dr" style="border:none"><span class="dk">Tipo</span><span style="font-size:.68rem;color:var(--ts);text-align:right;max-width:60%">${periodInfo(+wp)}</span></div>
-    <div class="dr"><span class="dk">Dirección</span><span class="dv">${compass(wvd)} · ${Math.round(wvd)}<span class="du">°</span></span></div>
-    <div class="dr"><span class="dk">Ola de viento</span><span class="dv">${wwh}<span class="du"> m</span> · ${wwp}<span class="du"> s</span></span></div>
-  </div>
-
-  <!-- Swell -->
-  <div class="sec fu">
-    <div class="sec-hd"><span class="sec-ico">〰️</span><span class="sec-hd-txt">Swell · Mar de fondo</span></div>
-    <div class="dr"><span class="dk">Altura</span><span class="dv">${swh}<span class="du"> m</span></span></div>
-    <div class="scl">
-      <div class="scl-t"><div class="scl-f" style="width:${Math.min(100,(+swh/3)*100)}%;background:${+swh<1?'var(--green)':+swh<2?'var(--amber)':'var(--red)'}"></div></div>
-      <div class="scl-lb"><span>Calmo</span><span>1m</span><span>2m</span><span>3m+</span></div>
-    </div>
-    <div class="dr"><span class="dk">Período</span><span class="dv">${swp}<span class="du"> s</span></span></div>
-    <div class="dr"><span class="dk">Dirección</span><span class="dv">${compass(swd)} · ${Math.round(swd)}<span class="du">°</span></span></div>
-    <div class="tip">💡 Swell &gt;1.5m con período &lt;8s genera olas irregulares y más fatiga. Período largo (&gt;10s) es más predecible y manejable.</div>
-  </div>
-
-  <!-- Viento + Temp -->
-  <div class="cols2">
-    <div class="sec fu" style="margin:0">
-      <div class="sec-hd"><span class="sec-ico">💨</span><span class="sec-hd-txt">Viento</span></div>
-      <div class="compass-wrap">
-        ${cSVG}
-        <div>
-          <div class="c-spd">${Math.round(wsp)}<span class="c-u"> km/h</span></div>
-          <div class="c-dir">${compass(wdi)} · ${Math.round(wdi)}°</div>
-          <div class="c-desc">${wii.txt}</div>
-          <div class="c-impact" style="color:${wii.col}">${wii.impact}</div>
-        </div>
-      </div>
-    </div>
-    <div class="sec fu" style="margin:0">
-      <div class="sec-hd"><span class="sec-ico">🌡️</span><span class="sec-hd-txt">Temperatura</span></div>
-      <div class="temp-g">
-        <div class="temp-b"><div class="tv" style="color:var(--cyan)">${sst}°</div><div class="tl">Agua</div><div class="th">${thi.emoji} ${thi.hint}</div></div>
-        <div class="temp-b"><div class="tv">${air}°</div><div class="tl">Aire</div><div class="th" style="color:var(--ts)">Exterior</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- UV -->
-  <div class="sec fu" style="margin-top:8px">
-    <div class="sec-hd"><span class="sec-ico">☀️</span><span class="sec-hd-txt">Radiación UV</span></div>
-    <div class="uv-top">
-      <div class="uv-n" style="color:${uvi.col}">${uv.toFixed(1)}</div>
-      <div class="uv-badge" style="color:${uvi.col};background:${uvi.col}18;border-color:${uvi.col}44">${uvi.cat}</div>
-    </div>
-    <div class="uv-t"><div class="uv-m" style="left:${Math.min(97,(uv/12)*100)}%"></div></div>
-    <div class="uv-sc"><span>0</span><span>3</span><span>6</span><span>8</span><span>10</span><span>12+</span></div>
-    <div class="uv-adv">${uvi.adv}</div>
-  </div>
-
-  <!-- Forecast -->
-  <div class="sec fu">
-    <div class="sec-hd"><span class="sec-ico">📊</span><span class="sec-hd-txt">Pronóstico 12 horas</span></div>
-    <div class="fc-rail">${fcHtml}</div>
-    <div class="leg">
-      <div class="leg-i"><div class="leg-d" style="background:var(--green)"></div>Óptimo</div>
-      <div class="leg-i"><div class="leg-d" style="background:var(--amber)"></div>Precaución</div>
-      <div class="leg-i"><div class="leg-d" style="background:var(--red)"></div>Adverso</div>
-      <div class="leg-i"><div class="leg-d" style="background:var(--purple)"></div>No sanitario</div>
-      <div class="leg-i" style="opacity:.4">ola (m) · viento (km/h)</div>
-    </div>
-  </div>
-
-  <!-- Safety -->
-  <div class="sec fu">
-    <div class="sec-hd"><span class="sec-ico">🛡️</span><span class="sec-hd-txt">Seguridad en el agua</span></div>
-    <div class="safety-g">
-      <div class="saf-i"><span class="saf-ico">👥</span><div class="saf-t"><b>Nadar acompañado</b>Nunca salir al mar solo. Avisa siempre dónde nadas.</div></div>
-      <div class="saf-i"><span class="saf-ico">🌊</span><div class="saf-t"><b>Entrada por rompiente</b>Espera entre olas. No le des la espalda al mar.</div></div>
-      <div class="saf-i"><span class="saf-ico">💪</span><div class="saf-t"><b>Corriente de retorno</b>Nada paralelo a la orilla, no contra la corriente.</div></div>
-      <div class="saf-i"><span class="saf-ico">📍</span><div class="saf-t"><b>Punto de referencia</b>Marca un punto en tierra antes de entrar.</div></div>
-    </div>
-  </div>
-
-  <!-- Beach note -->
-  <div style="text-align:center;font-family:var(--fm);font-size:.58rem;color:var(--tm);padding:8px 0 4px">
-    📍 ${beach.note} · ${beach.lat.toFixed(4)}, ${beach.lon.toFixed(4)}
-  </div>
-
-  <!-- Guide -->
-  ${buildGuide()}
-
-  <div style="height:20px"></div>
-</div>`;
-}
-
-/* ══════════════════════════════════════
-   HERO WAVE CANVAS
-══════════════════════════════════════ */
+/* ═══════════ HERO CANVAS ═══════════ */
+let heroRaf=null;
 function initHeroCanvas(waveHeight){
+  if(heroRaf){cancelAnimationFrame(heroRaf);heroRaf=null;}
   const c=document.getElementById('hc');
   if(!c)return;
   const ctx=c.getContext('2d');
-  c.width=c.offsetWidth||window.innerWidth;
-  c.height=c.offsetHeight||window.innerHeight;
-  let t=0;
-  const amp=Math.min(60,waveHeight*38+15);
-  const waves=[
-    {a:amp,    f:.006,sp:.008, y:c.height*.55, col:'rgba(0,60,120,.35)'},
-    {a:amp*.7, f:.009,sp:.013, y:c.height*.62, col:'rgba(0,40,90,.28)'},
-    {a:amp*.5, f:.013,sp:.018, y:c.height*.58, col:'rgba(0,212,255,.06)'},
+  function resize(){c.width=c.offsetWidth;c.height=c.offsetHeight;}
+  resize();
+  const amp=Math.min(55,waveHeight*35+12);
+  const H=c.height;
+  const layers=[
+    {a:amp,    f:.007,sp:.007,y:H*.52,col:'rgba(0,55,110,.4)'},
+    {a:amp*.75,f:.011,sp:.011,y:H*.60,col:'rgba(0,35,80,.32)'},
+    {a:amp*.5, f:.016,sp:.016,y:H*.56,col:'rgba(0,180,255,.06)'},
   ];
+  let t=0;
   function draw(){
     ctx.clearRect(0,0,c.width,c.height);
-    // deep bg gradient
-    const grd=ctx.createLinearGradient(0,0,0,c.height);
-    grd.addColorStop(0,'rgba(2,12,26,0)');
-    grd.addColorStop(.5,'rgba(2,12,26,.4)');
-    grd.addColorStop(1,'rgba(2,12,26,.95)');
-    ctx.fillStyle=grd;
-    ctx.fillRect(0,0,c.width,c.height);
-    waves.forEach(w=>{
+    // sky gradient
+    const g=ctx.createLinearGradient(0,0,0,c.height);
+    g.addColorStop(0,'rgba(2,20,42,.6)');
+    g.addColorStop(.5,'rgba(2,15,32,.3)');
+    g.addColorStop(1,'rgba(2,12,26,.0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,c.width,c.height);
+    layers.forEach(lyr=>{
       ctx.beginPath();ctx.moveTo(0,c.height);
-      for(let x=0;x<=c.width;x++)ctx.lineTo(x,w.y+Math.sin(x*w.f+t*w.sp*60)*w.a);
+      for(let x=0;x<=c.width;x++)ctx.lineTo(x,lyr.y+Math.sin(x*lyr.f+t*lyr.sp*60)*lyr.a);
       ctx.lineTo(c.width,c.height);ctx.closePath();
-      ctx.fillStyle=w.col;ctx.fill();
+      ctx.fillStyle=lyr.col;ctx.fill();
     });
-    t+=.016;requestAnimationFrame(draw);
+    t+=.016;heroRaf=requestAnimationFrame(draw);
   }
   draw();
 }
 
-/* ══════════════════════════════════════
-   GLOBAL WAVE CANVAS (bg)
-══════════════════════════════════════ */
+/* ═══════════ BG WAVES ═══════════ */
 function initBgWaves(){
   const c=document.getElementById('wvc');
   const ctx=c.getContext('2d');
@@ -1465,9 +716,9 @@ function initBgWaves(){
   function resize(){c.width=innerWidth;c.height=innerHeight;}
   resize();addEventListener('resize',resize);
   const waves=[
-    {a:28,f:.009,sp:.01, y:.45, col:'rgba(0,100,200,.12)'},
-    {a:18,f:.014,sp:.016,y:.55, col:'rgba(0,200,255,.07)'},
-    {a:12,f:.02, sp:.022,y:.38, col:'rgba(0,60,120,.08)'},
+    {a:24,f:.009,sp:.009,y:.42,col:'rgba(0,90,180,.1)'},
+    {a:16,f:.013,sp:.014,y:.52,col:'rgba(0,190,255,.06)'},
+    {a:10,f:.019,sp:.02, y:.36,col:'rgba(0,50,100,.07)'},
   ];
   (function frame(){
     ctx.clearRect(0,0,c.width,c.height);
@@ -1481,9 +732,260 @@ function initBgWaves(){
   })();
 }
 
-/* ══════════════════════════════════════
-   GUIDE
-══════════════════════════════════════ */
+/* ═══════════ RENDER PAGE ═══════════ */
+function renderPage(beach,d){
+  const sc  =scoreFromData(d);
+  const vd  =getVerdict(sc);
+  const flag=getFlag(sc,beach.digesa);
+  const flagR=buildFlagReason(d,sc);
+  const dg  =DIGESA_MAP[beach.digesa];
+  const m   =d.marine.current??{};
+  const w   =d.weather.current??{};
+  const wh  =+(m.wave_height??0).toFixed(2);
+  const wp  =+(m.wave_period??0).toFixed(1);
+  const wvd =+(m.wave_direction??0);
+  const wwh =+(m.wind_wave_height??0).toFixed(2);
+  const wwp =+(m.wind_wave_period??0).toFixed(1);
+  const swh =+(m.swell_wave_height??0).toFixed(2);
+  const swd =+(m.swell_wave_direction??0);
+  const swp =+(m.swell_wave_period??0).toFixed(1);
+  const sst =+(m.sea_surface_temperature??0).toFixed(1);
+  const air =+(w.temperature_2m??0).toFixed(1);
+  const wsp =+(w.wind_speed_10m??0);
+  const wdi =+(w.wind_direction_10m??0);
+  const uv  =+(w.uv_index??0);
+  const wi  =waveInfo(wh);
+  const wii =windInfo(wsp);
+  const uvi =uvInfo(uv);
+  const thi =thermoInfo(+sst);
+  const tags=getTags(d);
+  const als =generateAlerts(d,level);
+  const thr =LEVEL_THR[level];
+  const hwh2=d.marine.hourly?.wave_height??[];
+  const hws2=d.weather.hourly?.wind_speed_10m??[];
+  const good2=[];
+  for(let h=5;h<=18;h++){if((hwh2[h]??99)<thr.wave&&(hws2[h]??99)<thr.wind)good2.push(h);}
+  let bestStr=null;
+  if(good2.length){
+    const fmt=h=>String(h).padStart(2,'0')+':00';
+    const segs=[];let a=good2[0],b=good2[0];
+    for(let i=1;i<good2.length;i++){if(good2[i]===b+1){b=good2[i];}else{segs.push([a,b]);a=b=good2[i];}}
+    segs.push([a,b]);bestStr=segs.map(([a,b])=>a===b?fmt(a):`${fmt(a)}–${fmt(b+1)}`).join(', ');
+  }
+  const wfp=Math.min(100,(wh/3)*100);
+  const wfc=wh<1.0?'var(--green)':wh<1.8?'var(--amber)':'var(--red)';
+  const circ=2*Math.PI*40;
+  const offset=circ-(sc/100)*circ;
+  const fc2=flag.key==='green'?'var(--green)':flag.key==='yellow'?'var(--amber)':flag.key==='red'?'var(--red)':'var(--purple)';
+  const na=wdi-180;
+  const cSVG=`<svg class="compass-svg" viewBox="0 0 60 60" fill="none">
+    <circle cx="30" cy="30" r="29" fill="var(--d2)" stroke="var(--edge)" stroke-width="1"/>
+    <text x="30" y="10" text-anchor="middle" fill="#3d627c" font-size="6" font-family="DM Mono,monospace">N</text>
+    <text x="30" y="55" text-anchor="middle" fill="#3d627c" font-size="6" font-family="DM Mono,monospace">S</text>
+    <text x="7"  y="33" text-anchor="middle" fill="#3d627c" font-size="6" font-family="DM Mono,monospace">O</text>
+    <text x="53" y="33" text-anchor="middle" fill="#3d627c" font-size="6" font-family="DM Mono,monospace">E</text>
+    <g transform="translate(30,30) rotate(${na})">
+      <polygon points="0,-14 2.5,0 0,4 -2.5,0" fill="#ff3d5a"/>
+      <polygon points="0,14 2.5,0 0,-4 -2.5,0" fill="#3d627c"/>
+    </g>
+    <circle cx="30" cy="30" r="3" fill="var(--cyan)"/>
+  </svg>`;
+  const nowH=new Date().getHours();
+  let fcHtml='';
+  const hwh3=d.marine.hourly?.wave_height??[];
+  const hws3=d.weather.hourly?.wind_speed_10m??[];
+  for(let i=0;i<12;i++){
+    const h=(nowH+i)%24;
+    const fw=+(hwh3[h]??0).toFixed(1),fw2=Math.round(hws3[h]??0);
+    const cls=fcClass(fw,fw2,beach.digesa==='bad');
+    fcHtml+=`<div class="fc-i ${cls}"><div class="fc-t">${String(h).padStart(2,'0')}:00</div>
+      <div class="fc-fm" aria-label="${fcLabel(cls)}"></div>
+      <div class="fc-w">${fw}<span class="fc-wu">m</span></div>
+      <div class="fc-wi">💨${fw2}</div>
+      <div class="fc-lb">${fcLabel(cls)}</div></div>`;
+  }
+  setAtm(vd);
+
+  return`
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-bg"><canvas id="hc"></canvas></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+
+    <!-- Score badge — arriba a la derecha, sin overlapping -->
+    <div class="hero-score-badge fu">
+      <div class="score-ring">
+        <svg viewBox="0 0 88 88">
+          <circle class="sr-bg" cx="44" cy="44" r="40"/>
+          <circle class="sr-fill" cx="44" cy="44" r="40"
+            stroke="${vd.col}"
+            stroke-dasharray="${circ.toFixed(1)}"
+            stroke-dashoffset="${offset.toFixed(1)}"/>
+        </svg>
+        <div class="score-inner">
+          <div class="score-n" style="color:${vd.col}">${sc}</div>
+          <div class="score-l">Score</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beach name — siempre debajo del score -->
+    <div class="hero-name fu fu1">${beach.name}</div>
+
+    <!-- Verdict -->
+    <div class="verdict-row fu fu2">
+      <span class="vd-dot" style="background:${vd.col}"></span>
+      <div>
+        <div class="vd-label" style="color:${vd.col}">${vd.txt}</div>
+        <div class="vd-phrase">${vd.phrase} · ${thr.label}</div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="hero-kpis fu fu3">
+      <div class="hkpi"><div class="hkv">${wh}<span class="hku">m</span></div><div class="hkl">Oleaje</div></div>
+      <div class="hkpi"><div class="hkv">${Math.round(wsp)}<span class="hku">km/h</span></div><div class="hkl">Viento</div></div>
+      <div class="hkpi"><div class="hkv" style="color:${uvi.col}">${uv.toFixed(1)}</div><div class="hkl">UV</div></div>
+    </div>
+
+    <!-- Wave bar -->
+    <div class="hero-wbar fu fu3">
+      <div class="wb-head"><span class="wb-lbl">Nivel de oleaje</span><span class="wb-val" style="color:${wfc}">${wh}m</span></div>
+      <div class="wb-track"><div class="wb-fill" style="width:${wfp}%;background:${wfc}"></div></div>
+      <div class="wb-meta"><div class="wb-human" style="color:${wfc}">${wi.txt}</div><div class="wb-who">${wi.who}</div></div>
+    </div>
+
+    <!-- Tags -->
+    <div class="hero-tags fu fu4">${tags.map(t=>`<span class="tag ${t.c}">${t.x}</span>`).join('')}</div>
+
+    <!-- Flag -->
+    <div class="hero-flag fu fu4" style="border-color:${fc2}28">
+      <div class="hf-pole">
+        <div class="hf-rect" style="background:${fc2}"></div>
+        <div class="hf-mast"></div>
+      </div>
+      <div class="hf-info">
+        <div class="hf-label" style="color:${fc2}">${flag.label}</div>
+        <div class="hf-reason">${flagR}</div>
+        <div class="hf-action" style="color:${fc2}">→ ${flag.action}</div>
+      </div>
+    </div>
+
+    <!-- Best time + DIGESA -->
+    <div class="hero-meta fu fu5">
+      <div class="meta-pill" style="border-color:${bestStr?'rgba(0,229,160,.2)':'rgba(255,167,38,.2)'}">
+        <div class="mp-lbl">Mejor hora</div>
+        <div class="mp-val" style="color:${bestStr?'var(--green)':'var(--amber)'}">${bestStr||'Sin ventana'}</div>
+        <div class="mp-sub">${thr.label}</div>
+      </div>
+      <div class="meta-pill" style="border-color:${dg.cls==='ok'?'rgba(0,229,160,.2)':dg.cls==='bad'?'rgba(255,61,90,.22)':'rgba(61,98,124,.2)'}">
+        <div class="mp-lbl">DIGESA</div>
+        <div class="mp-val" style="color:${dg.cls==='ok'?'var(--green)':dg.cls==='bad'?'var(--red)':'var(--ts)'}">${dg.icon} ${dg.cls==='ok'?'Saludable':dg.cls==='bad'?'No Saludable':'Sin datos'}</div>
+        <div class="mp-sub">${dg.cls==='bad'?'⚠ No ingresar':'Fuente: MINSA'}</div>
+      </div>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="scroll-hint">
+      <span>más datos</span>
+      <div class="sh-arr"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ALERTS ═══ -->
+<div class="alerts-wrap">
+  ${als.length?`<div class="alerts-ttl">Alertas · ${new Date().toLocaleDateString('es-PE',{weekday:'long'})}</div>`:''}
+  ${als.map(a=>`<div class="alert-card ${a.col} fu">
+    <span class="al-ico">${a.ico}</span>
+    <div><div class="al-ttl">${a.ttl}</div><div class="al-msg">${a.msg}</div><div class="al-act">→ ${a.act}</div></div>
+  </div>`).join('')}
+</div>
+
+<!-- ═══ DATA SECTIONS ═══ -->
+<div class="data-wrap">
+  <div class="sec fu">
+    <div class="sec-hd"><span class="sec-ico">🌊</span><span class="sec-hd-t">Oleaje</span></div>
+    <div class="dr"><span class="dk">Altura actual</span><span class="dv">${wh}<span class="du"> m</span></span></div>
+    <div class="scl">
+      <div class="scl-t"><div class="scl-f" style="width:${wfp}%;background:${wfc}"></div></div>
+      <div class="scl-lb"><span>Plana</span><span>0.5m</span><span>1m</span><span>1.5m</span><span>3m+</span></div>
+      <div class="scl-h" style="color:${wfc}">${wi.txt}</div>
+      <div class="scl-w">${wi.who}</div>
+    </div>
+    <div class="dr"><span class="dk">Período</span><span class="dv">${wp}<span class="du"> s</span></span></div>
+    <div class="dr" style="border:none"><span class="dk">Tipo</span><span class="dm">${periodInfo(+wp)}</span></div>
+    <div class="dr"><span class="dk">Dirección</span><span class="dv">${compass(wvd)} · ${Math.round(wvd)}<span class="du">°</span></span></div>
+    <div class="dr"><span class="dk">Ola de viento</span><span class="dv">${wwh}<span class="du"> m</span> · ${wwp}<span class="du"> s</span></span></div>
+  </div>
+  <div class="sec fu">
+    <div class="sec-hd"><span class="sec-ico">〰️</span><span class="sec-hd-t">Swell</span></div>
+    <div class="dr"><span class="dk">Altura</span><span class="dv">${swh}<span class="du"> m</span></span></div>
+    <div class="scl">
+      <div class="scl-t"><div class="scl-f" style="width:${Math.min(100,(+swh/3)*100)}%;background:${+swh<1?'var(--green)':+swh<2?'var(--amber)':'var(--red)'}"></div></div>
+      <div class="scl-lb"><span>Calmo</span><span>1m</span><span>2m</span><span>3m+</span></div>
+    </div>
+    <div class="dr"><span class="dk">Período</span><span class="dv">${swp}<span class="du"> s</span></span></div>
+    <div class="dr"><span class="dk">Dirección</span><span class="dv">${compass(swd)} · ${Math.round(swd)}<span class="du">°</span></span></div>
+    <div class="tip">💡 Swell &gt;1.5m con período &lt;8s = olas irregulares y más fatiga. Período largo (&gt;10s) es más predecible.</div>
+  </div>
+  <div class="cols2">
+    <div class="sec fu" style="margin:0">
+      <div class="sec-hd"><span class="sec-ico">💨</span><span class="sec-hd-t">Viento</span></div>
+      <div class="compass-wrap">${cSVG}
+        <div><div class="c-spd">${Math.round(wsp)}<span class="c-u"> km/h</span></div>
+          <div class="c-dir">${compass(wdi)} · ${Math.round(wdi)}°</div>
+          <div class="c-desc">${wii.txt}</div>
+          <div class="c-impact" style="color:${wii.col}">${wii.impact}</div>
+        </div>
+      </div>
+    </div>
+    <div class="sec fu" style="margin:0">
+      <div class="sec-hd"><span class="sec-ico">🌡️</span><span class="sec-hd-t">Temperatura</span></div>
+      <div class="temp-g">
+        <div class="temp-b"><div class="tv" style="color:var(--cyan)">${sst}°</div><div class="tl">Agua</div><div class="th">${thi.emoji} ${thi.hint}</div></div>
+        <div class="temp-b"><div class="tv">${air}°</div><div class="tl">Aire</div><div class="th" style="color:var(--ts)">Exterior</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="sec fu" style="margin-top:8px">
+    <div class="sec-hd"><span class="sec-ico">☀️</span><span class="sec-hd-t">Radiación UV</span></div>
+    <div class="uv-top"><div class="uv-n" style="color:${uvi.col}">${uv.toFixed(1)}</div>
+      <div class="uv-badge" style="color:${uvi.col};background:${uvi.col}18;border-color:${uvi.col}44">${uvi.cat}</div>
+    </div>
+    <div class="uv-t"><div class="uv-m" style="left:${Math.min(97,(uv/12)*100)}%"></div></div>
+    <div class="uv-sc"><span>0</span><span>3</span><span>6</span><span>8</span><span>10</span><span>12+</span></div>
+    <div class="uv-adv">${uvi.adv}</div>
+  </div>
+  <div class="sec fu">
+    <div class="sec-hd"><span class="sec-ico">📊</span><span class="sec-hd-t">Pronóstico 12 horas</span></div>
+    <div class="fc-rail">${fcHtml}</div>
+    <div class="leg">
+      <div class="leg-i"><div class="leg-d" style="background:var(--green)"></div>Óptimo</div>
+      <div class="leg-i"><div class="leg-d" style="background:var(--amber)"></div>Precaución</div>
+      <div class="leg-i"><div class="leg-d" style="background:var(--red)"></div>Adverso</div>
+      <div class="leg-i"><div class="leg-d" style="background:var(--purple)"></div>No sanitario</div>
+    </div>
+  </div>
+  <div class="sec fu">
+    <div class="sec-hd"><span class="sec-ico">🛡️</span><span class="sec-hd-t">Seguridad</span></div>
+    <div class="safety-g">
+      <div class="saf-i"><span class="saf-ico">👥</span><div class="saf-t"><b>Nadar acompañado</b>Nunca solo. Avisa dónde nadas.</div></div>
+      <div class="saf-i"><span class="saf-ico">🌊</span><div class="saf-t"><b>Entrada</b>Espera entre olas. No le des la espalda al mar.</div></div>
+      <div class="saf-i"><span class="saf-ico">💪</span><div class="saf-t"><b>Corriente</b>Nada paralelo a la orilla, no contra la corriente.</div></div>
+      <div class="saf-i"><span class="saf-ico">📍</span><div class="saf-t"><b>Referencia</b>Marca un punto en tierra antes de entrar.</div></div>
+    </div>
+  </div>
+  <div style="text-align:center;font-family:var(--fm);font-size:.57rem;color:var(--tm);padding:8px 0 4px">
+    📍 ${beach.note} · ${beach.lat.toFixed(4)}, ${beach.lon.toFixed(4)}
+  </div>
+  ${buildGuide()}
+  <div class="pb"></div>
+</div>`;
+}
+
+/* ═══════════ GUIDE ═══════════ */
 function buildGuide(){
   return`
 <button class="gbtn" onclick="toggleGuide()">
@@ -1494,160 +996,96 @@ function buildGuide(){
   <span class="g-arr" id="garr">▼</span>
 </button>
 <div class="gbody" id="gbody">
-  <div class="gsec">
-    <div class="gsec-hd" onclick="toggleSec(this)"><span class="gsec-ico">🎯</span><span class="gsec-ttl">Score del nadador</span><span class="gsec-chev">▼</span></div>
-    <div class="gsec-body">
-      <div class="sg-g">
-        <div class="sg g"><div class="sg-n">75–100</div><div class="sg-l">APTO</div><div class="sg-h">Todos los niveles pueden nadar</div></div>
-        <div class="sg y"><div class="sg-n">50–74</div><div class="sg-l">PRECAUCIÓN</div><div class="sg-h">Intermedio–Avanzado</div></div>
-        <div class="sg r"><div class="sg-n">0–49</div><div class="sg-l">NO APTO</div><div class="sg-h">No ingresar al agua</div></div>
-      </div>
-      <div class="ghlt">Score = oleaje + período + viento + UV. <b>Siempre lee los datos individuales</b> — un score de 70 con oleaje 1.5m es diferente a 70 con viento fuerte.</div>
+  <div class="gsec"><div class="gsec-hd" onclick="tS(this)"><span class="gsec-ico">🎯</span><span class="gsec-ttl">Score del nadador</span><span class="gsec-ch">▼</span></div>
+    <div class="gsec-body"><div class="sg-grid">
+      <div class="sg g"><div class="sg-n">75–100</div><div class="sg-l">APTO</div><div class="sg-h">Todos los niveles</div></div>
+      <div class="sg y"><div class="sg-n">50–74</div><div class="sg-l">PRECAUCIÓN</div><div class="sg-h">Inter.–Avanzado</div></div>
+      <div class="sg r"><div class="sg-n">0–49</div><div class="sg-l">NO APTO</div><div class="sg-h">No ingresar</div></div>
+    </div><div class="ghlt">El score considera oleaje, período, viento y UV. <b>Siempre lee los datos individuales.</b></div></div>
+  </div>
+  <div class="gsec"><div class="gsec-hd" onclick="tS(this)"><span class="gsec-ico">🎌</span><span class="gsec-ttl">Sistema de banderas</span><span class="gsec-ch">▼</span></div>
+    <div class="gsec-body"><table class="gtable"><thead><tr><th>Bandera</th><th>Condición</th><th>Acción</th></tr></thead><tbody>
+      <tr><td class="cg">Verde</td><td class="cn">Score ≥ 75</td><td class="cn">Puedes nadar</td></tr>
+      <tr><td class="cy">Amarilla</td><td class="cn">Score 50–74</td><td class="cn">Con precaución</td></tr>
+      <tr><td class="cr">Roja</td><td class="cn">Score &lt; 50</td><td class="cn">Evita ingresar</td></tr>
+      <tr><td class="cp">Morada</td><td class="cn">DIGESA no saludable</td><td class="cr">No ingresar</td></tr>
+    </tbody></table>
+    <div class="ghlt"><b>Bandera morada = prioridad absoluta</b> sobre cualquier condición marina.</div>
     </div>
   </div>
-  <div class="gsec">
-    <div class="gsec-hd" onclick="toggleSec(this)"><span class="gsec-ico">🎌</span><span class="gsec-ttl">Sistema de banderas</span><span class="gsec-chev">▼</span></div>
-    <div class="gsec-body">
-      <table class="gtable">
-        <thead><tr><th>Bandera</th><th>Condición</th><th>¿Qué hacer?</th></tr></thead>
-        <tbody>
-          <tr><td class="cg">Verde</td><td class="cn">Score ≥ 75</td><td class="cn">Puedes nadar con confianza</td></tr>
-          <tr><td class="cy">Amarilla</td><td class="cn">Score 50–74</td><td class="cn">Entra con precaución</td></tr>
-          <tr><td class="cr">Roja</td><td class="cn">Score &lt; 50</td><td class="cn">Evita ingresar al mar</td></tr>
-          <tr><td class="cp">Morada</td><td class="cn">DIGESA: No saludable</td><td class="cr">No ingresar — riesgo sanitario</td></tr>
-        </tbody>
-      </table>
-      <div class="ghlt"><b>Bandera morada = prioridad absoluta.</b> Aunque el mar esté en calma, agua no apta = no entrar.</div>
-    </div>
+  <div class="gsec"><div class="gsec-hd" onclick="tS(this)"><span class="gsec-ico">🌊</span><span class="gsec-ttl">Oleaje y quién puede nadar</span><span class="gsec-ch">▼</span></div>
+    <div class="gsec-body"><table class="gtable"><thead><tr><th>Altura</th><th>Estado</th><th>¿Quién?</th></tr></thead><tbody>
+      <tr><td>&lt;0.6m</td><td class="cg">Muy calma</td><td class="cn">Todos</td></tr>
+      <tr><td>0.6–1.0m</td><td class="cg">Ligera</td><td class="cn">Prin.–Avanz.</td></tr>
+      <tr><td>1.0–1.5m</td><td class="cy">Moderada</td><td class="cn">Inter.–Avanz.</td></tr>
+      <tr><td>1.5–2.0m</td><td class="cy">Importante</td><td class="cn">Solo avanzados</td></tr>
+      <tr><td>&gt;2.0m</td><td class="cr">Fuerte+</td><td class="cr">No recomendado</td></tr>
+    </tbody></table></div>
   </div>
-  <div class="gsec">
-    <div class="gsec-hd" onclick="toggleSec(this)"><span class="gsec-ico">🌊</span><span class="gsec-ttl">Oleaje</span><span class="gsec-chev">▼</span></div>
-    <div class="gsec-body">
-      <table class="gtable">
-        <thead><tr><th>Altura</th><th>Estado</th><th>¿Quién puede nadar?</th></tr></thead>
-        <tbody>
-          <tr><td>&lt;0.6m</td><td class="cg">Muy calma</td><td class="cn">Todos sin restricción</td></tr>
-          <tr><td>0.6–1.0m</td><td class="cg">Ligera</td><td class="cn">Principiante a Avanzado</td></tr>
-          <tr><td>1.0–1.5m</td><td class="cy">Moderada</td><td class="cn">Intermedio o Avanzado</td></tr>
-          <tr><td>1.5–2.0m</td><td class="cy">Importante</td><td class="cn">Solo avanzados</td></tr>
-          <tr><td>&gt;2.0m</td><td class="cr">Fuerte+</td><td class="cr">No recomendado / Peligroso</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="gsec"><div class="gsec-hd" onclick="tS(this)"><span class="gsec-ico">⏱️</span><span class="gsec-ttl">Período de ola</span><span class="gsec-ch">▼</span></div>
+    <div class="gsec-body"><table class="gtable"><thead><tr><th>Período</th><th>Tipo</th><th>Impacto</th></tr></thead><tbody>
+      <tr><td>&lt;6s</td><td class="cr">Muy corto</td><td class="cn">Caótico, alta fatiga</td></tr>
+      <tr><td>6–8s</td><td class="cy">Corto</td><td class="cn">Frecuente, requiere técnica</td></tr>
+      <tr><td>8–12s</td><td class="cg">Regular</td><td class="cn">Manejable</td></tr>
+      <tr><td>&gt;12s</td><td class="cg">Largo</td><td class="cn">Predecible, cómodo</td></tr>
+    </tbody></table>
+    <div class="ghlt"><b>Período corto cansa más que oleaje alto.</b></div></div>
   </div>
-  <div class="gsec">
-    <div class="gsec-hd" onclick="toggleSec(this)"><span class="gsec-ico">⏱️</span><span class="gsec-ttl">Período de ola</span><span class="gsec-chev">▼</span></div>
-    <div class="gsec-body">
-      <table class="gtable">
-        <thead><tr><th>Período</th><th>Tipo</th><th>Impacto</th></tr></thead>
-        <tbody>
-          <tr><td>&lt;6s</td><td class="cr">Muy corto</td><td class="cn">Olas caóticas, alta fatiga</td></tr>
-          <tr><td>6–8s</td><td class="cy">Corto</td><td class="cn">Frecuentes, requiere técnica</td></tr>
-          <tr><td>8–12s</td><td class="cg">Regular</td><td class="cn">Manejable, buen ritmo</td></tr>
-          <tr><td>&gt;12s</td><td class="cg">Largo</td><td class="cn">Olas predecibles, cómodo</td></tr>
-        </tbody>
-      </table>
-      <div class="ghlt"><b>Período corto cansa más que oleaje alto.</b> Prioriza el período al planificar el entrenamiento.</div>
-    </div>
+  <div class="gsec"><div class="gsec-hd" onclick="tS(this)"><span class="gsec-ico">☀️</span><span class="gsec-ttl">UV para nadadores</span><span class="gsec-ch">▼</span></div>
+    <div class="gsec-body"><table class="gtable"><thead><tr><th>Índice</th><th>Nivel</th><th>Protección</th></tr></thead><tbody>
+      <tr><td>0–2</td><td class="cg">Bajo</td><td class="cn">Básica</td></tr>
+      <tr><td>3–5</td><td class="cg">Moderado</td><td class="cn">FPS 30+</td></tr>
+      <tr><td>6–7</td><td class="cy">Alto</td><td class="cn">FPS 50+ · Gorra</td></tr>
+      <tr><td>8–10</td><td class="cy">Muy Alto</td><td class="cn">FPS 50+ · Evita 10am–2pm</td></tr>
+      <tr><td>11+</td><td class="cr">Extremo</td><td class="cr">Nada antes de las 8am</td></tr>
+    </tbody></table>
+    <div class="ghlt">En el agua la exposición UV es <b>mayor por reflexión.</b> Aplica protector 20 min antes.</div></div>
   </div>
-  <div class="gsec">
-    <div class="gsec-hd" onclick="toggleSec(this)"><span class="gsec-ico">💨</span><span class="gsec-ttl">Viento</span><span class="gsec-chev">▼</span></div>
-    <div class="gsec-body">
-      <table class="gtable">
-        <thead><tr><th>Velocidad</th><th>Tipo</th><th>Impacto en natación</th></tr></thead>
-        <tbody>
-          <tr><td>&lt;5 km/h</td><td class="cg">Calma</td><td class="cn">Sin efecto perceptible</td></tr>
-          <tr><td>5–15</td><td class="cg">Brisa suave</td><td class="cn">Impacto mínimo</td></tr>
-          <tr><td>15–25</td><td class="cy">Brisa fresca</td><td class="cn">Deriva lateral, ajusta ruta</td></tr>
-          <tr><td>25–35</td><td class="cy">Fuerte</td><td class="cn">Deriva significativa</td></tr>
-          <tr><td>&gt;35</td><td class="cr">Muy fuerte</td><td class="cr">Peligroso — no nadar</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div class="gsec">
-    <div class="gsec-hd" onclick="toggleSec(this)"><span class="gsec-ico">☀️</span><span class="gsec-ttl">UV para nadadores</span><span class="gsec-chev">▼</span></div>
-    <div class="gsec-body">
-      <table class="gtable">
-        <thead><tr><th>Índice</th><th>Nivel</th><th>Protección mínima</th></tr></thead>
-        <tbody>
-          <tr><td>0–2</td><td class="cg">Bajo</td><td class="cn">Ninguna especial</td></tr>
-          <tr><td>3–5</td><td class="cg">Moderado</td><td class="cn">FPS 30+ resistente al agua</td></tr>
-          <tr><td>6–7</td><td class="cy">Alto</td><td class="cn">FPS 50+ · Lentes · Gorra</td></tr>
-          <tr><td>8–10</td><td class="cy">Muy Alto</td><td class="cn">FPS 50+ · Evita 10am–2pm</td></tr>
-          <tr><td>11+</td><td class="cr">Extremo</td><td class="cr">Nada antes de las 8am</td></tr>
-        </tbody>
-      </table>
-      <div class="ghlt">En el agua la exposición UV es <b>mayor por reflexión.</b> Aplica el protector 20 min antes de entrar.</div>
-    </div>
-  </div>
-  <div class="gsec">
-    <div class="gsec-hd" onclick="toggleSec(this)"><span class="gsec-ico">🏥</span><span class="gsec-ttl">Calidad sanitaria DIGESA</span><span class="gsec-chev">▼</span></div>
-    <div class="gsec-body">
-      <table class="gtable">
-        <thead><tr><th>Estado</th><th>Qué significa</th></tr></thead>
-        <tbody>
-          <tr><td class="cg">✅ Saludable</td><td class="cn">Cumple agua apta + arena limpia + SSHH</td></tr>
-          <tr><td class="cr">🚫 No saludable</td><td class="cr">Falla en algún criterio — riesgo de infección</td></tr>
-          <tr><td class="cn">⚪ Sin datos</td><td class="cn">Sin inspección reciente — verificar MINSA</td></tr>
-        </tbody>
-      </table>
-      <div class="ghlt"><b>No saludable = no ingresar</b> aunque el mar esté en calma. DIGESA actualiza semanalmente en verano.</div>
-    </div>
+  <div class="gsec"><div class="gsec-hd" onclick="tS(this)"><span class="gsec-ico">🏥</span><span class="gsec-ttl">Calidad sanitaria DIGESA</span><span class="gsec-ch">▼</span></div>
+    <div class="gsec-body"><table class="gtable"><thead><tr><th>Estado</th><th>Significa</th></tr></thead><tbody>
+      <tr><td class="cg">✅ Saludable</td><td class="cn">Agua apta + arena limpia + SSHH</td></tr>
+      <tr><td class="cr">🚫 No saludable</td><td class="cr">Riesgo de infección</td></tr>
+      <tr><td class="cn">⚪ Sin datos</td><td class="cn">Verificar en MINSA</td></tr>
+    </tbody></table>
+    <div class="ghlt"><b>No saludable = no ingresar</b>, aunque el mar esté en calma.</div></div>
   </div>
 </div>`;
 }
-function toggleGuide(){
-  const b=document.getElementById('gbody'),a=document.getElementById('garr');
-  if(!b||!a)return;
-  b.classList.toggle('open');a.classList.toggle('open');
-}
-function toggleSec(hd){
-  hd.nextElementSibling.classList.toggle('open');
-  hd.querySelector('.gsec-chev').classList.toggle('open');
-}
+function toggleGuide(){const b=document.getElementById('gbody'),a=document.getElementById('garr');if(!b||!a)return;b.classList.toggle('open');a.classList.toggle('open');}
+function tS(hd){hd.nextElementSibling.classList.toggle('open');hd.querySelector('.gsec-ch').classList.toggle('open');}
 
-/* ══════════════════════════════════════
-   LEVEL
-══════════════════════════════════════ */
+/* ═══════════ LEVEL ═══════════ */
 function setLevel(lv){
   level=lv;
   document.querySelectorAll('.lv').forEach(b=>b.classList.toggle('on',b.dataset.lv===lv));
   const beach=BEACHES[active];
-  if(cache[beach.id]) renderBeach(beach,cache[beach.id]);
+  if(cache[beach.id])renderBeach(beach,cache[beach.id]);
 }
 
-/* ══════════════════════════════════════
-   PICK BEACH
-══════════════════════════════════════ */
+/* ═══════════ PICK ═══════════ */
 async function pick(idx){
-  active=idx;
-  renderRail();
+  active=idx;renderRail();
   const beach=BEACHES[idx];
   document.getElementById('bbCoords').innerHTML=`<span>${beach.lat.toFixed(4)}, ${beach.lon.toFixed(4)}</span>`;
   const app=document.getElementById('app');
-  app.style.opacity='0';
-  app.style.transition='none';
+  app.style.opacity='0';app.style.transition='none';
   if(!cache[beach.id]){
-    app.innerHTML=`<div style="min-height:100dvh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px">
-      <div class="ld-ring" style="width:36px;height:36px"></div>
+    app.innerHTML=`<div style="min-height:80dvh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px">
+      <div style="width:36px;height:36px;border-radius:50%;border:2px solid var(--d3);border-top-color:var(--cyan);animation:spin .75s linear infinite"></div>
       <div style="font-family:var(--fm);font-size:.62rem;color:var(--ts)">${beach.name}</div>
     </div>`;
   }
   requestAnimationFrame(()=>{app.style.transition='opacity .25s ease';app.style.opacity='1';});
   try{
     if(!cache[beach.id])cache[beach.id]=await fetchBeach(beach);
-    renderBeach(beach,cache[beach.id]);
-    renderRail();
+    renderBeach(beach,cache[beach.id]);renderRail();
   }catch(e){
-    app.innerHTML=`<div class="err-scr"><div class="err-ico">🌊</div>
+    app.innerHTML=`<div class="err-s"><div class="err-ico">🌊</div>
       <div class="err-ttl">Sin datos disponibles</div>
-      <div class="err-sub">Verifica tu conexión e intenta de nuevo</div>
-    </div>`;
+      <div class="err-sub">Verifica tu conexión e intenta de nuevo</div></div>`;
     app.style.opacity='1';
   }
 }
-
 function renderBeach(beach,d){
   const app=document.getElementById('app');
   app.style.opacity='0';
@@ -1656,42 +1094,39 @@ function renderBeach(beach,d){
     const wh=d.marine.current?.wave_height??0;
     requestAnimationFrame(()=>{
       initHeroCanvas(wh);
-      app.style.transition='opacity .35s ease';
-      app.style.opacity='1';
+      app.style.transition='opacity .35s ease';app.style.opacity='1';
     });
-  },120);
+  },100);
 }
 
-/* ══════════════════════════════════════
-   REFRESH
-══════════════════════════════════════ */
+/* ═══════════ REFRESH ═══════════ */
 async function doRefresh(){
   const btn=document.getElementById('rfBtn');
-  btn.classList.add('spin');
-  cache={};
-  await pick(active);
-  updateTime();
+  btn.classList.add('spin');cache={};
+  await pick(active);updateTime();
   btn.classList.remove('spin');
 }
 function updateTime(){
   const el=document.getElementById('hdTime');
-  if(el){
-    const n=new Date();
-    el.innerHTML=`Actualizado: <b>${n.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</b>`;
-  }
+  if(el){const n=new Date();el.innerHTML=`Actualizado: <b>${n.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</b>`;}
 }
 
-/* ══════════════════════════════════════
-   INIT
-══════════════════════════════════════ */
+/* ═══════════ BG ═══════════ */
+function initBgWaves(){
+  const c=document.getElementById('wvc'),ctx=c.getContext('2d');
+  let t=0;
+  function resize(){c.width=innerWidth;c.height=innerHeight;}
+  resize();addEventListener('resize',resize);
+  const waves=[{a:22,f:.009,sp:.009,y:.4,col:'rgba(0,80,160,.1)'},{a:14,f:.014,sp:.014,y:.5,col:'rgba(0,180,255,.06)'},{a:9,f:.02,sp:.02,y:.35,col:'rgba(0,40,90,.08)'}];
+  (function frame(){ctx.clearRect(0,0,c.width,c.height);waves.forEach(w=>{ctx.beginPath();ctx.moveTo(0,c.height);for(let x=0;x<=c.width;x++)ctx.lineTo(x,c.height*w.y+Math.sin(x*w.f+t*w.sp*60)*w.a);ctx.lineTo(c.width,c.height);ctx.closePath();ctx.fillStyle=w.col;ctx.fill();});t+=.016;requestAnimationFrame(frame);})();
+}
+
+/* ═══════════ INIT ═══════════ */
 async function init(){
-  initBgWaves();
-  renderRail();
-  await pick(0);
-  updateTime();
+  initBgWaves();renderRail();
+  await pick(0);updateTime();
   const ld=document.getElementById('loader');
-  ld.classList.add('out');
-  setTimeout(()=>ld.remove(),700);
+  ld.classList.add('out');setTimeout(()=>ld.remove(),700);
 }
 window.addEventListener('DOMContentLoaded',init);
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
