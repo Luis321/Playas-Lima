@@ -1369,131 +1369,173 @@ function initBgWaves(){
 // Cache global para avisos y mareas (inicializados en state arriba)
 
 async function fetchDHN() {
-  if (dhnCache) return dhnCache;
-  try {
-    // Fetch avisos especiales via CORS proxy
-    const PROXY = 'https://api.allorigins.win/get?url=';
-    const url = encodeURIComponent('https://www.dhn.mil.pe/portal/avisos-especiales');
-    const res = await fetch(PROXY + url);
-    const json = await res.json();
-    const html = json.contents;
-    dhnCache = parseDHNAvisos(html);
-    return dhnCache;
-  } catch(e) {
-    console.warn('DIHIDRONAV fetch failed:', e);
-    return null;
+  if (dhnCache !== undefined) return dhnCache;
+
+  // Proxies CORS en orden de prioridad
+  const PROXIES = [
+    html => { try { return JSON.parse(html).contents; } catch(e){ return null; } },
+  ];
+  const PROXY_URLS = [
+    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  ];
+  const TARGET = 'https://www.dhn.mil.pe/portal/avisos-especiales';
+
+  for (let i = 0; i < PROXY_URLS.length; i++) {
+    try {
+      const res = await fetch(PROXY_URLS[i](TARGET), { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) continue;
+      const raw = await res.text();
+      // allorigins devuelve JSON con .contents; los otros devuelven HTML directo
+      const html = (raw.trim().startsWith('{')) ? (JSON.parse(raw).contents || raw) : raw;
+      if (html && html.includes('AVISO')) {
+        const parsed = parseDHNAvisos(html);
+        if (parsed) return parsed;
+      }
+    } catch(e) { /* próximo proxy */ }
   }
+  console.warn('DIHIDRONAV: todos los proxies fallaron');
+  return null;
 }
 
 function parseDHNAvisos(html) {
-  // Extraer el aviso más reciente
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-  
-  // Buscar texto del aviso
-  const bodyText = doc.body?.innerText || doc.body?.textContent || '';
-  
-  // Extraer título del aviso
-  const avisoMatch = bodyText.match(/AVISO ESPECIAL[^\r\n]*/i);
-  const avisoTitulo = avisoMatch ? avisoMatch[0].trim() : 'Aviso Especial Vigente';
-  
-  // Determinar tipo: oleaje o viento
-  const isOleaje = /oleaje/i.test(avisoTitulo);
-  const isViento = /viento/i.test(avisoTitulo);
-  
-  // Extraer fecha
-  const fechaMatch = bodyText.match(/Callao,\s+([\d]+ de [a-zA-Záéíóúñ]+ \d{4})/i);
-  const fecha = fechaMatch ? fechaMatch[1] : null;
-  
-  // Extraer litoral centro (Lima)
-  const litCentroMatch = bodyText.match(/Litoral Centro[\s\S]*?((?:oleaje|brisa|viento)[^.]*\.)/i);
-  const litCentro = litCentroMatch ? litCentroMatch[1].trim() : null;
-  
-  // Extraer litoral norte
-  const litNorteMatch = bodyText.match(/Litoral Norte[\s\S]*?((?:oleaje|brisa|viento|persiste)[^.]*\.)/i);
-  const litNorte = litNorteMatch ? litNorteMatch[1].trim() : null;
-  
-  // Determinar severidad para Lima
-  let severity = 'normal';
-  let severityLabel = 'Condiciones Normales';
-  let icon = '✅';
-  let color = 'var(--green)';
-  
-  if (litCentro) {
-    const lc = litCentro.toLowerCase();
-    if (/muy fuerte/i.test(lc)) { severity='critical'; severityLabel='Oleaje Muy Fuerte'; icon='🚨'; color='var(--red)'; }
-    else if (/fuerte/i.test(lc)) { severity='high'; severityLabel='Oleaje Fuerte'; icon='⚠️'; color='var(--red)'; }
-    else if (/moderado/i.test(lc)) { severity='medium'; severityLabel='Oleaje Moderado'; icon='⚠️'; color='var(--amber)'; }
-    else if (/ligero|ligero/i.test(lc)) { severity='low'; severityLabel='Oleaje Ligero'; icon='🔶'; color='var(--amber)'; }
-    else if (/normal|calma/i.test(lc)) { severity='normal'; severityLabel='Condiciones Normales'; icon='✅'; color='var(--green)'; }
-    else if (/brisa|viento/i.test(lc)) { severity='wind'; severityLabel='Aviso de Viento'; icon='💨'; color='var(--amber)'; }
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const text = doc.body?.textContent || '';
+
+    // Extraer todos los avisos del HTML (links a PDF)
+    // Patron: [Imagen](URL) o href="URL" para PDFs
+    const pdfMatches = [...html.matchAll(/href="(https:\/\/www\.dhn\.mil\.pe\/Archivos\/Oceanografia\/Avisoespecial\/[^"]+\.pdf)"/gi)];
+    const viewerMatches = [...html.matchAll(/href="(https:\/\/www\.dhn\.mil\.pe\/portal\/pdf-aviso-especial\/(\d+))"/gi)];
+
+    // URL del primer (más reciente) PDF
+    let pdfUrl = null, avisoId = null, pdfViewerUrl = null;
+    if (pdfMatches.length > 0) pdfUrl = pdfMatches[0][1];
+    if (viewerMatches.length > 0) {
+      pdfViewerUrl = viewerMatches[0][1];
+      avisoId = viewerMatches[0][2];
+    }
+
+    // Determinar tipo por URL del PDF
+    const isViento = pdfUrl && /vientos/i.test(pdfUrl);
+    const isOleaje = pdfUrl && /oleajes/i.test(pdfUrl);
+
+    // Extraer título del aviso más reciente
+    const tituloMatch = text.match(/AVISO ESPECIAL[^\r\n]{5,80}/i);
+    const titulo = tituloMatch ? tituloMatch[0].trim().replace(/\s+/g,' ') : 'Aviso Especial Vigente';
+
+    // Extraer el texto principal del aviso (primera sección de texto largo)
+    // Buscar el párrafo descriptivo después del título
+    const mainTextMatch = text.match(/La Marina de Guerra del Perú[^.]{20,400}\./i);
+    const mainText = mainTextMatch ? mainTextMatch[0].trim().replace(/\s+/g,' ') : '';
+
+    // Extraer fecha
+    const fechaMatch = text.match(/Callao,\s*(\d+\s+de\s+[a-záéíóúñ]+\s+\d{4})/i);
+    const fecha = fechaMatch ? fechaMatch[1] : null;
+
+    // Extraer estado por sección litoral
+    const litCentroMatch = text.match(/Litoral Centro[^:]*:([\s\S]{10,200}?)(?:Litoral Sur|Litoral Norte|c\.|Los oleajes|Se recomienda)/i);
+    const litCentroRaw = litCentroMatch ? litCentroMatch[1].replace(/\s+/g,' ').trim() : null;
+
+    // Determinar severidad del litoral centro (Lima)
+    let severityLabel = 'Sin alertas activas', icon = '✅', color = 'var(--green)';
+    const checkText = (litCentroRaw || mainText || titulo).toLowerCase();
+
+    if (/muy fuerte/i.test(checkText))      { severityLabel='Oleaje Muy Fuerte';   icon='🚨'; color='var(--red)';   }
+    else if (/fuerte/i.test(checkText))     { severityLabel='Oleaje Fuerte';        icon='⚠️'; color='var(--red)';   }
+    else if (/moderado/i.test(checkText))   { severityLabel='Oleaje Moderado';      icon='⚠️'; color='var(--amber)'; }
+    else if (/ligero/i.test(checkText))     { severityLabel='Oleaje Ligero';        icon='🔶'; color='var(--amber)'; }
+    else if (/brisa fresca/i.test(checkText)){severityLabel='Brisa Fresca';         icon='💨'; color='var(--amber)'; }
+    else if (/brisa/i.test(checkText))      { severityLabel='Aviso de Viento';      icon='💨'; color='var(--amber)'; }
+    else if (/normal/i.test(checkText))     { severityLabel='Condiciones Normales'; icon='✅'; color='var(--green)'; }
+
+    // Google Docs Viewer URL para embeber el PDF sin CORS
+    const gdocsUrl = pdfUrl
+      ? `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`
+      : null;
+
+    return {
+      titulo,
+      tipo: isOleaje ? 'Oleaje Anómalo' : isViento ? 'Aviso de Viento' : 'Aviso Especial',
+      fecha,
+      severityLabel, icon, color,
+      mainText,
+      litCentro: litCentroRaw || mainText.substring(0, 180) || 'Ver documento oficial.',
+      pdfUrl,
+      pdfViewerUrl,
+      gdocsUrl,
+      avisoId,
+    };
+  } catch(e) {
+    console.warn('parseDHNAvisos error:', e);
+    return null;
   }
-  
-  // Extraer texto completo del aviso para Lima
-  const linesIdx = bodyText.indexOf('Litoral Centro');
-  let litCentroFull = '';
-  if (linesIdx > -1) {
-    litCentroFull = bodyText.substring(linesIdx, linesIdx + 400)
-      .split('\n').slice(0, 6).join(' ').replace(/\s+/g,' ').trim();
-  }
-  
-  return {
-    titulo: avisoTitulo,
-    tipo: isOleaje ? 'Oleaje Anómalo' : isViento ? 'Aviso de Viento' : 'Aviso Especial',
-    fecha,
-    severity, severityLabel, icon, color,
-    litCentro: litCentro || 'Condiciones normales — sin alertas activas.',
-    litCentroFull: litCentroFull || litCentro || '',
-    litNorte: litNorte || '—',
-    raw: bodyText.substring(0, 200),
-  };
 }
 
 async function fetchMareas() {
   if (mareaCache) return mareaCache;
-  try {
-    // Generar mareas estimadas para Callao basadas en algoritmo astronómico simplificado
-    // ya que DIHIDRONAV no tiene API de mareas en JSON
-    mareaCache = calcMareasCallao();
-    return mareaCache;
-  } catch(e) {
-    return null;
-  }
+  mareaCache = calcMareasCallao();
+  return mareaCache;
 }
 
 function calcMareasCallao() {
-  // Cálculo simplificado de mareas para Callao (lat -12.05, amplitud ~0.5m)
-  // Callao tiene mareas semidiurnas de baja amplitud (~0.4-0.6m)
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const mareas = [];
-  
-  // Fase lunar para ajuste
   const lunarCycle = 29.53058867;
   const knownNewMoon = new Date('2024-01-11');
-  const daysSince = (today - knownNewMoon) / 86400000;
+  const daysSince = (now - knownNewMoon) / 86400000;
   const lunarAge = daysSince % lunarCycle;
   const lunarPhase = lunarAge / lunarCycle;
-  
-  // Amplitud base Callao: 0.45m, offset por fase lunar
   const baseAmp = 0.42 + 0.08 * Math.abs(Math.cos(lunarPhase * 2 * Math.PI));
-  
-  // 4 mareas por día (semidiurna) con variación
-  const intervals = [0, 6.21, 12.42, 18.63];
   const baseHour = (lunarPhase * 24 * 0.8) % 12;
-  
-  intervals.forEach((offset, i) => {
+  const intervals = [0, 6.21, 12.42, 18.63];
+  return intervals.map((offset, i) => {
     const h = (baseHour + offset) % 24;
     const isPlena = i % 2 === 0;
-    const altura = isPlena ? (baseAmp + 0.12).toFixed(2) : (0.15 + 0.05).toFixed(2);
-    mareas.push({
+    return {
       hora: String(Math.floor(h)).padStart(2,'0') + ':' + String(Math.round((h%1)*60)).padStart(2,'0'),
-      altura: parseFloat(altura),
+      altura: parseFloat(isPlena ? (baseAmp + 0.12).toFixed(2) : (0.20).toFixed(2)),
       tipo: isPlena ? 'Pleamar' : 'Bajamar',
-    });
-  });
-  
-  return mareas.sort((a,b)=>a.hora.localeCompare(b.hora));
+    };
+  }).sort((a,b) => a.hora.localeCompare(b.hora));
+}
+
+/* ─── CSS extra para el visor de documentos ─── */
+(function injectDHNextraCSS(){
+  const s = document.createElement('style');
+  s.textContent = `
+    .dhn-doc-btn{display:flex;align-items:center;gap:7px;padding:9px 13px;
+      border-radius:8px;border:1px solid;cursor:pointer;transition:all .2s;
+      font-family:var(--fm);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
+      text-decoration:none;margin-top:10px;width:100%;justify-content:center;}
+    .dhn-doc-btn.primary{color:var(--cyan);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.06)}
+    .dhn-doc-btn.primary:hover{background:rgba(0,212,255,.15)}
+    .dhn-doc-btn.secondary{color:var(--ts);border-color:var(--edge);background:transparent;margin-top:6px}
+    .dhn-viewer{width:100%;border-radius:8px;border:1px solid var(--edge);
+      margin-top:10px;overflow:hidden;background:var(--d2);}
+    .dhn-viewer iframe{width:100%;height:420px;border:none;display:block;}
+    .dhn-viewer-loading{padding:20px;text-align:center;font-family:var(--fm);
+      font-size:.62rem;color:var(--ts);}
+    .dhn-toggle-btn{background:none;border:none;cursor:pointer;
+      font-family:var(--fm);font-size:.58rem;color:var(--cyan);
+      letter-spacing:.08em;text-transform:uppercase;padding:4px 0;}
+  `;
+  document.head.appendChild(s);
+})();
+
+function toggleDHNViewer(gdocsUrl) {
+  const wrap = document.getElementById('dhn-viewer-wrap');
+  if (!wrap) return;
+  if (wrap.innerHTML.trim()) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = '<div class="dhn-viewer"><div class="dhn-viewer-loading">⏳ Cargando documento oficial...</div></div>';
+  // Pequeño delay para que el loading sea visible, luego cargar iframe
+  setTimeout(() => {
+    wrap.innerHTML = '<div class="dhn-viewer"><iframe src="' + gdocsUrl + '" title="Aviso DIHIDRONAV" loading="lazy"></iframe></div>';
+  }, 300);
 }
 
 function renderDHNCard(dhn, mareas) {
@@ -1501,23 +1543,35 @@ function renderDHNCard(dhn, mareas) {
     return `<div class="dhn-card fu">
       <div class="dhn-hd">
         <span class="dhn-dot" style="background:var(--ts)"></span>
-        <span class="dhn-ttl">DIHIDRONAV — Marina de Guerra del Perú</span>
+        <div style="flex:1">
+          <div class="dhn-ttl">DIHIDRONAV — Marina de Guerra del Perú</div>
+          <div class="dhn-src">Dirección de Hidrografía y Navegación</div>
+        </div>
       </div>
-      <div style="display:flex;align-items:center;gap:9px;padding:13px 15px;font-family:var(--fm);font-size:.62rem;color:var(--ts)">
-        ⚠️ No se pudo obtener datos. <a href="https://www.dhn.mil.pe/portal/avisos-especiales" target="_blank" class="dhn-link">Ver en dhn.mil.pe →</a>
+      <div class="dhn-body">
+        <div style="display:flex;align-items:center;gap:9px;font-size:.7rem;color:var(--ts);margin-bottom:10px">
+          ⚠️ No se pudo obtener datos en tiempo real.
+        </div>
+        <a href="https://www.dhn.mil.pe/portal/avisos-especiales" target="_blank" class="dhn-doc-btn primary">
+          Ver avisos en dhn.mil.pe →
+        </a>
       </div>
     </div>`;
   }
-  
-  const mareHTML = mareas ? mareas.map(m => `
-    <div class="marea-i">
-      <div class="marea-t">${m.hora}</div>
-      <div class="marea-h" style="color:${m.tipo==='Pleamar'?'var(--cyan)':'var(--ts)'}">${m.altura}<span style="font-size:.5rem;color:var(--ts)">m</span></div>
-      <div class="marea-tp">${m.tipo==='Pleamar'?'Pleamar':'Bajamar'}</div>
-    </div>`).join('') : '';
 
-  return `
-  <div class="dhn-card fu">
+  const mareHTML = mareas ? mareas.map(m =>
+    '<div class="marea-i">' +
+      '<div class="marea-t">' + m.hora + '</div>' +
+      '<div class="marea-h" style="color:' + (m.tipo==='Pleamar'?'var(--cyan)':'var(--ts)') + '">' + m.altura + '<span style="font-size:.5rem;color:var(--ts)">m</span></div>' +
+      '<div class="marea-tp">' + (m.tipo==='Pleamar'?'Pleamar':'Bajamar') + '</div>' +
+    '</div>'
+  ).join('') : '';
+
+  const viewerBtn = dhn.gdocsUrl
+    ? `<button class="dhn-toggle-btn" onclick="toggleDHNViewer('${dhn.gdocsUrl}')">📄 Ver documento oficial ↕</button>`
+    : '';
+
+  return `<div class="dhn-card fu">
     <div class="dhn-hd">
       <span class="dhn-dot" style="background:${dhn.color}"></span>
       <div style="flex:1">
@@ -1527,40 +1581,34 @@ function renderDHNCard(dhn, mareas) {
       <span class="dhn-badge" style="color:${dhn.color};border-color:${dhn.color}44;background:${dhn.color}11">${dhn.tipo}</span>
     </div>
     <div class="dhn-body">
-      <div class="dhn-row">
+
+      <div class="dhn-row" style="margin-bottom:10px">
         <span class="dhn-ico">${dhn.icon}</span>
         <div>
-          <div class="dhn-stat" style="color:${dhn.color}">${dhn.severityLabel} — Litoral Centro</div>
-          <div class="dhn-sub">${dhn.titulo}</div>
+          <div class="dhn-stat" style="color:${dhn.color}">${dhn.severityLabel}</div>
+          <div class="dhn-sub" style="font-size:.62rem;font-family:var(--fh);font-weight:600;color:var(--ts);margin-top:2px">${dhn.titulo}</div>
         </div>
       </div>
 
-      <div class="dhn-lits">
-        <div class="dhn-lit">
-          <div class="dhn-lil">Litoral Centro (Lima)</div>
-          <div class="dhn-liv">${dhn.litCentro}</div>
-        </div>
-        <div class="dhn-lit">
-          <div class="dhn-lil">Litoral Norte</div>
-          <div class="dhn-liv">${dhn.litNorte}</div>
-        </div>
-      </div>
+      ${dhn.litCentro ? `<div class="dhn-quote">${dhn.litCentro}</div>` : ''}
 
-      ${dhn.litCentroFull && dhn.litCentroFull.length > dhn.litCentro.length ? `
-      <div class="dhn-quote" style="margin-top:10px">
-        <b>Detalle Litoral Centro:</b> ${dhn.litCentroFull.substring(0,300)}${dhn.litCentroFull.length>300?'...':''}
+      ${dhn.gdocsUrl ? `
+      <div id="dhn-viewer-wrap"></div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        ${viewerBtn}
+        ${dhn.pdfUrl ? `<a href="${dhn.pdfUrl}" target="_blank" class="dhn-doc-btn secondary" style="width:auto;padding:4px 10px">↗ Abrir PDF</a>` : ''}
       </div>` : ''}
 
       ${mareas ? `
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--edge)">
-        <div style="font-family:var(--fm);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--tm);margin-bottom:2px">Tabla de Mareas · Callao (estimado)</div>
+        <div style="font-family:var(--fm);font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tm);margin-bottom:6px">Mareas estimadas · Callao</div>
         <div class="marea-grid">${mareHTML}</div>
-        <div style="font-family:var(--fm);font-size:.52rem;color:var(--tm);margin-top:5px">Mareas semidiurnas de baja amplitud (~0.4–0.6m). Datos estimados.</div>
+        <div style="font-family:var(--fm);font-size:.5rem;color:var(--tm);margin-top:5px">Estimado basado en ciclo lunar · Amplitud ~0.4–0.6m</div>
       </div>` : ''}
 
       <div class="dhn-foot">
-        ${dhn.fecha ? `<div class="dhn-date">Aviso: ${dhn.fecha}</div>` : '<div class=dhn-date>Actualizado al cargar</div>'}
-        <a href="https://www.dhn.mil.pe/portal/avisos-especiales" target="_blank" class="dhn-link">Ver avisos oficiales →</a>
+        ${dhn.fecha ? `<div class="dhn-date">Callao, ${dhn.fecha}</div>` : ''}
+        <a href="https://www.dhn.mil.pe/portal/avisos-especiales" target="_blank" class="dhn-link">Todos los avisos →</a>
       </div>
     </div>
   </div>`;
