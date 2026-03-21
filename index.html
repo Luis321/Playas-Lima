@@ -41,14 +41,146 @@ body{background:var(--ink);color:var(--tp);font-family:var(--fb);min-height:100d
 button{font-family:inherit;cursor:pointer;border:none;background:none}
 
 /* ══════════════ LOADER ══════════════ */
-#loader{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .6s}
+#loader{
+  position:fixed;inset:0;
+  background:var(--ink);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:9999;
+  transition:opacity .6s ease;
+}
 #loader.out{opacity:0;pointer-events:none}
-.ld-logo{font-family:var(--fh);font-size:2rem;font-weight:800;letter-spacing:-.02em}
+.ld-logo{
+  font-family:var(--fh);font-size:2rem;
+  font-weight:800;letter-spacing:-.02em;
+  margin-top:18px;
+}
 .ld-logo span{color:var(--cyan)}
-.ld-bar{width:48px;height:2px;background:var(--d3);border-radius:2px;margin-top:20px;overflow:hidden}
-.ld-bar::after{content:'';display:block;height:100%;background:var(--cyan);border-radius:2px;animation:ldslide 1.2s ease infinite}
-@keyframes ldslide{0%{width:0;margin-left:0}50%{width:100%;margin-left:0}100%{width:0;margin-left:100%}}
-.ld-txt{font-family:var(--fm);font-size:.55rem;letter-spacing:.28em;text-transform:uppercase;color:var(--ts);margin-top:14px}
+.ld-bar{
+  width:48px;height:2px;
+  background:var(--d3);border-radius:2px;
+  margin-top:16px;overflow:hidden;
+}
+.ld-bar::after{
+  content:'';display:block;height:100%;
+  background:var(--cyan);border-radius:2px;
+  animation:ldslide 1.2s ease infinite;
+}
+@keyframes ldslide{
+  0%{width:0;margin-left:0}
+  50%{width:100%;margin-left:0}
+  100%{width:0;margin-left:100%}
+}
+.ld-txt{
+  font-family:var(--fm);font-size:.55rem;
+  letter-spacing:.28em;text-transform:uppercase;
+  color:var(--ts);margin-top:10px;
+}
+/* ── SWIMMER SCENE ── */
+.swimmer-scene{
+  width:220px;height:140px;
+  position:relative;
+  overflow:hidden;
+}
+.sw-ocean{
+  position:absolute;bottom:0;left:0;right:0;
+  height:75px;
+}
+.sw-wave1,.sw-wave2,.sw-wave3{
+  position:absolute;
+  left:-10%;width:120%;
+  border-radius:50%;
+  background:transparent;
+}
+.sw-wave1{
+  height:28px;bottom:28px;
+  border-top:2px solid rgba(0,212,255,.4);
+  animation:swWave1 2.4s ease-in-out infinite;
+}
+.sw-wave2{
+  height:22px;bottom:20px;
+  border-top:2px solid rgba(0,212,255,.25);
+  animation:swWave2 2.8s ease-in-out infinite .4s;
+}
+.sw-wave3{
+  height:18px;bottom:10px;
+  border-top:1.5px solid rgba(0,180,220,.18);
+  animation:swWave1 3.2s ease-in-out infinite .8s;
+}
+@keyframes swWave1{
+  0%,100%{transform:translateX(0) scaleY(1)}
+  50%{transform:translateX(-4%) scaleY(1.12)}
+}
+@keyframes swWave2{
+  0%,100%{transform:translateX(0) scaleY(1)}
+  50%{transform:translateX(4%) scaleY(.88)}
+}
+/* Water fill */
+.sw-water{
+  position:absolute;bottom:0;left:0;right:0;
+  height:38px;
+  background:linear-gradient(to bottom, rgba(0,180,255,.12), rgba(0,80,180,.22));
+}
+/* Swimmer SVG */
+.sw-person{
+  position:absolute;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  width:70px;height:50px;
+  animation:swBob 1.8s ease-in-out infinite;
+}
+@keyframes swBob{
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(-4px)}
+}
+/* Entry splash */
+.sw-splash{
+  position:absolute;
+  bottom:30px;left:50%;
+  transform:translateX(-50%);
+  opacity:0;
+  animation:swSplash 1.8s ease-out infinite;
+}
+@keyframes swSplash{
+  0%{opacity:0;transform:translateX(-50%) scale(.5)}
+  15%{opacity:.7;transform:translateX(-50%) scale(1)}
+  60%{opacity:0;transform:translateX(-50%) scale(1.5)}
+  100%{opacity:0;transform:translateX(-50%) scale(1.5)}
+}
+/* Arm stroke */
+.sw-arm-r{
+  transform-origin:8px 12px;
+  animation:armStroke 1.8s ease-in-out infinite;
+}
+.sw-arm-l{
+  transform-origin:8px 12px;
+  animation:armStroke 1.8s ease-in-out infinite .9s;
+}
+@keyframes armStroke{
+  0%{transform:rotate(-30deg)}
+  45%{transform:rotate(140deg)}
+  50%{transform:rotate(140deg)}
+  100%{transform:rotate(-30deg)}
+}
+/* Kick legs */
+.sw-leg-r{animation:legKick 0.9s ease-in-out infinite}
+.sw-leg-l{animation:legKick 0.9s ease-in-out infinite .45s}
+@keyframes legKick{
+  0%,100%{transform:rotate(0deg)}
+  50%{transform:rotate(14deg)}
+}
+/* Bubbles */
+.sw-bubble{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(0,212,255,.35);
+  animation:bubbleRise 2s ease-in infinite;
+}
+@keyframes bubbleRise{
+  0%{opacity:.8;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-30px) scale(1.5)}
+}
 
 /* ══════════════ BACKGROUND ══════════════ */
 #wvc{position:fixed;top:0;left:0;width:100%;height:100dvh;pointer-events:none;z-index:0;opacity:.2}
@@ -513,6 +645,84 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
 
 <!-- LOADER -->
 <div id="loader">
+
+  <!-- Swimmer animation scene -->
+  <div class="swimmer-scene">
+
+    <!-- Bubbles -->
+    <div class="sw-bubble" style="width:4px;height:4px;left:52%;bottom:38px;animation-delay:.3s;animation-duration:1.8s"></div>
+    <div class="sw-bubble" style="width:3px;height:3px;left:57%;bottom:34px;animation-delay:.9s;animation-duration:2.2s"></div>
+    <div class="sw-bubble" style="width:5px;height:5px;left:47%;bottom:36px;animation-delay:1.5s;animation-duration:2s"></div>
+
+    <!-- Entry splash rings -->
+    <div class="sw-splash">
+      <svg width="44" height="12" viewBox="0 0 44 12" fill="none">
+        <ellipse cx="22" cy="6" rx="20" ry="5" stroke="rgba(0,212,255,.5)" stroke-width="1.5"/>
+        <ellipse cx="22" cy="6" rx="12" ry="3" stroke="rgba(0,212,255,.3)" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <!-- Swimmer SVG -->
+    <div class="sw-person">
+      <svg width="70" height="48" viewBox="0 0 70 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Body — horizontal prone position -->
+        <ellipse cx="35" cy="26" rx="18" ry="6" fill="rgba(0,180,255,.18)" stroke="rgba(0,212,255,.5)" stroke-width="1.2"/>
+
+        <!-- Head -->
+        <circle cx="52" cy="22" r="6" fill="rgba(0,212,255,.25)" stroke="rgba(0,212,255,.7)" stroke-width="1.2"/>
+        <!-- Cap -->
+        <path d="M47 20 Q52 14 57 20" stroke="rgba(0,229,160,.9)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        <!-- Goggles -->
+        <circle cx="54" cy="23" r="1.8" stroke="rgba(0,229,160,.8)" stroke-width="1" fill="rgba(0,229,160,.15)"/>
+        <circle cx="50" cy="23" r="1.8" stroke="rgba(0,229,160,.8)" stroke-width="1" fill="rgba(0,229,160,.15)"/>
+        <line x1="50" y1="21.2" x2="50" y2="20" stroke="rgba(0,229,160,.5)" stroke-width=".8"/>
+        <line x1="54" y1="21.2" x2="54" y2="20" stroke="rgba(0,229,160,.5)" stroke-width=".8"/>
+
+        <!-- Arm right (forward stroke) -->
+        <g class="sw-arm-r" style="transform-origin:53px 24px">
+          <path d="M53 24 Q64 16 68 10" stroke="rgba(0,212,255,.8)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <!-- Hand -->
+          <ellipse cx="68" cy="9" rx="3" ry="1.5" fill="rgba(0,212,255,.4)" stroke="rgba(0,212,255,.7)" stroke-width="1" transform="rotate(-30 68 9)"/>
+        </g>
+
+        <!-- Arm left (recovery) -->
+        <g class="sw-arm-l" style="transform-origin:53px 26px">
+          <path d="M53 26 Q62 32 66 38" stroke="rgba(0,212,255,.5)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <ellipse cx="66" cy="38" rx="3" ry="1.5" fill="rgba(0,212,255,.25)" stroke="rgba(0,212,255,.4)" stroke-width="1" transform="rotate(20 66 38)"/>
+        </g>
+
+        <!-- Torso stripe (wetsuit) -->
+        <path d="M36 22 Q40 20 46 22" stroke="rgba(0,229,160,.4)" stroke-width="1" stroke-linecap="round" fill="none"/>
+
+        <!-- Leg right kick -->
+        <g class="sw-leg-r" style="transform-origin:20px 26px">
+          <path d="M20 26 Q14 30 10 35" stroke="rgba(0,212,255,.7)" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <ellipse cx="9" cy="36" rx="4" ry="1.8" fill="rgba(0,212,255,.3)" stroke="rgba(0,212,255,.6)" stroke-width="1" transform="rotate(30 9 36)"/>
+        </g>
+
+        <!-- Leg left kick -->
+        <g class="sw-leg-l" style="transform-origin:20px 28px">
+          <path d="M20 28 Q14 26 9 28" stroke="rgba(0,212,255,.5)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <ellipse cx="8" cy="28" rx="4" ry="1.8" fill="rgba(0,212,255,.2)" stroke="rgba(0,212,255,.4)" stroke-width="1"/>
+        </g>
+
+        <!-- Water line intersection -->
+        <line x1="10" y1="30" x2="66" y2="30" stroke="rgba(0,212,255,.12)" stroke-width=".8" stroke-dasharray="3 3"/>
+
+      </svg>
+    </div>
+
+    <!-- Ocean waves -->
+    <div class="sw-ocean">
+      <div class="sw-wave1"></div>
+      <div class="sw-wave2"></div>
+      <div class="sw-wave3"></div>
+      <div class="sw-water"></div>
+    </div>
+
+  </div>
+
   <div class="ld-logo">OW<span> Lima</span></div>
   <div class="ld-bar"></div>
   <div class="ld-txt">Cargando datos del mar</div>
