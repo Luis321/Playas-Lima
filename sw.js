@@ -1,42 +1,22 @@
-const VER = 'ow-lima-v2';
-const STATIC = ['/', '/index.html',
-  'https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap'
+/* OW Lima SW Premium */
+const VER='ow-lima-premium-v1';
+const ASSETS=['/','/index.html',
+  'https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&family=Cabinet+Grotesk:wght@300;400;500;700&display=swap'
 ];
-
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VER).then(c => c.addAll(STATIC)).then(() => self.skipWaiting()));
+self.addEventListener('install',e=>{
+  e.waitUntil(caches.open(VER).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));
 });
-
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VER).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VER).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
-
-self.addEventListener('fetch', e => {
-  const url = new URL(e.request.url);
-  // APIs: network-first, no cache
-  if (url.hostname.includes('open-meteo') || url.hostname.includes('marine-api')) {
-    e.respondWith(
-      fetch(e.request).catch(() =>
-        new Response(JSON.stringify({error:'offline', message:'Sin conexión. Datos no disponibles.'}),
-          {headers:{'Content-Type':'application/json'}})
-      )
-    );
+self.addEventListener('fetch',e=>{
+  const url=new URL(e.request.url);
+  if(url.hostname.includes('open-meteo')||url.hostname.includes('marine-api')){
+    e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>new Response(JSON.stringify({error:'offline'}),{headers:{'Content-Type':'application/json'}})));
     return;
   }
-  // Static: cache-first
-  e.respondWith(
-    caches.match(e.request).then(cached => cached ||
-      fetch(e.request).then(res => {
-        if (res.ok && res.type !== 'opaque') {
-          const clone = res.clone();
-          caches.open(VER).then(c => c.put(e.request, clone));
-        }
-        return res;
-      })
-    )
-  );
+  e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).then(r=>{
+    if(r.ok){const cl=r.clone();caches.open(VER).then(cx=>cx.put(e.request,cl));}
+    return r;
+  })));
 });
