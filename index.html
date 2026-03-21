@@ -154,20 +154,21 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
   position:relative;z-index:2;
   flex:1;display:flex;flex-direction:column;
   justify-content:flex-end;
+  align-items:center;
   padding:24px 20px 28px;
   gap:0;
+  text-align:center;
 }
 
-/* Score — top right, no overlap with name */
+/* Score — centrado */
 .hero-score-badge{
-  align-self:flex-end;
-  margin-bottom:16px;
+  align-self:center;
+  margin-bottom:10px;
   display:flex;flex-direction:column;align-items:center;gap:0;
-  position:relative;
 }
 .score-ring{
-  width:clamp(88px,22vw,108px);
-  height:clamp(88px,22vw,108px);
+  width:clamp(72px,17vw,86px);
+  height:clamp(72px,17vw,86px);
   position:relative;
 }
 .score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
@@ -178,31 +179,33 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
   display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
 .score-n{
-  font-family:var(--fh);font-size:clamp(1.8rem,6vw,2.4rem);
+  font-family:var(--fh);font-size:clamp(1.4rem,4.5vw,1.8rem);
   font-weight:800;line-height:1;letter-spacing:-.03em;
   transition:color .6s;
 }
-.score-l{font-family:var(--fm);font-size:.42rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ts);margin-top:2px}
+.score-l{font-family:var(--fm);font-size:.38rem;letter-spacing:.15em;text-transform:uppercase;color:var(--ts);margin-top:2px}
 
 /* Beach name */
 .hero-name{
   font-family:var(--fh);
-  font-size:clamp(2.4rem,9vw,3.6rem);
-  font-weight:800;line-height:.95;
-  letter-spacing:-.03em;
+  font-size:clamp(1.6rem,5.5vw,2.2rem);
+  font-weight:800;line-height:1.05;
+  letter-spacing:-.02em;
   color:var(--tp);
-  margin-bottom:10px;
+  margin-bottom:8px;
+  text-align:center;
+  align-self:center;
 }
 
 /* Verdict */
-.verdict-row{display:flex;align-items:center;gap:9px;margin-bottom:16px}
+.verdict-row{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:16px}
 .vd-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;animation:pulse 2.2s ease infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.55)}}
 .vd-label{font-family:var(--fh);font-size:clamp(.82rem,2.8vw,1rem);font-weight:700;letter-spacing:.07em;text-transform:uppercase;line-height:1}
 .vd-phrase{font-size:.75rem;color:var(--ts);margin-top:2px;font-weight:400}
 
 /* KPIs */
-.hero-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
+.hero-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;width:100%}
 .hkpi{
   background:var(--frost);backdrop-filter:blur(16px);
   border:1px solid var(--edge);border-radius:11px;
@@ -216,7 +219,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
 .hero-wbar{
   background:var(--frost);backdrop-filter:blur(16px);
   border:1px solid var(--edge);border-radius:11px;
-  padding:12px 14px;margin-bottom:9px;
+  padding:12px 14px;margin-bottom:9px;width:100%;
 }
 .wb-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
 .wb-lbl{font-size:.63rem;color:var(--ts)}
@@ -228,7 +231,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
 .wb-who{font-size:.63rem;color:var(--ts)}
 
 /* Tags */
-.hero-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px;width:100%;justify-content:center}
 .tag{font-family:var(--fm);font-size:.57rem;letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:5px;border:1px solid;backdrop-filter:blur(8px)}
 .tg{color:var(--green);border-color:rgba(0,229,160,.25);background:rgba(0,229,160,.08)}
 .ty{color:var(--amber);border-color:rgba(255,167,38,.25);background:rgba(255,167,38,.08)}
@@ -241,6 +244,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
   background:var(--frost);backdrop-filter:blur(16px);
   border:1px solid;border-radius:11px;
   padding:12px 13px;margin-bottom:9px;
+  width:100%;text-align:left;
   transition:border-color .4s;
 }
 .hf-pole{display:flex;flex-direction:column;align-items:flex-start;flex-shrink:0;padding-top:2px;gap:0}
@@ -253,7 +257,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
 .hf-action{font-family:var(--fm);font-size:.6rem;margin-top:5px;letter-spacing:.04em}
 
 /* Best + DIGESA */
-.hero-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.hero-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;width:100%}
 .meta-pill{
   background:var(--frost);backdrop-filter:blur(16px);
   border:1px solid var(--edge);border-radius:10px;
