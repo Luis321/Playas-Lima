@@ -1404,69 +1404,169 @@ function parseDHNAvisos(html) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const text = doc.body?.textContent || '';
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
-    // Extraer todos los avisos del HTML (links a PDF)
-    // Patron: [Imagen](URL) o href="URL" para PDFs
-    const pdfMatches = [...html.matchAll(/href="(https:\/\/www\.dhn\.mil\.pe\/Archivos\/Oceanografia\/Avisoespecial\/[^"]+\.pdf)"/gi)];
-    const viewerMatches = [...html.matchAll(/href="(https:\/\/www\.dhn\.mil\.pe\/portal\/pdf-aviso-especial\/(\d+))"/gi)];
+    // ── Parsear todos los avisos del HTML como bloques estructurados ──
+    // Cada aviso tiene: título, validez, tipo, pdf, texto
+    const MESES = {enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,
+                   julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
 
-    // URL del primer (más reciente) PDF
-    let pdfUrl = null, avisoId = null, pdfViewerUrl = null;
-    if (pdfMatches.length > 0) pdfUrl = pdfMatches[0][1];
-    if (viewerMatches.length > 0) {
-      pdfViewerUrl = viewerMatches[0][1];
-      avisoId = viewerMatches[0][2];
+    function parseDate(str) {
+      // "22 de marzo del 2026" o "22 de marzo 2026"
+      const m = str.match(/(\d+)\s+de\s+([a-záéíóúñ]+)\s+(?:del?\s+)?(\d{4})/i);
+      if (!m) return null;
+      const d = new Date(parseInt(m[3]), MESES[m[2].toLowerCase()] ?? 0, parseInt(m[1]));
+      return isNaN(d) ? null : d;
     }
 
-    // Determinar tipo por URL del PDF
-    const isViento = pdfUrl && /vientos/i.test(pdfUrl);
-    const isOleaje = pdfUrl && /oleajes/i.test(pdfUrl);
+    function parseValidez(titulo) {
+      // "Válido del 22 al 24 de marzo del 2026"
+      // "Válido del 16 al 22 de marzo 2026"
+      // "Válido del 23 de febrero al 01 de marzo 2026"
+      const m1 = titulo.match(/V[áa]lido del?\s+(\d+)\s+al\s+(\d+)\s+de\s+([a-záéíóúñ]+)\s+(?:del?\s+)?(\d{4})/i);
+      if (m1) {
+        const mes = MESES[m1[3].toLowerCase()] ?? 0;
+        const anio = parseInt(m1[4]);
+        return {
+          desde: new Date(anio, mes, parseInt(m1[1])),
+          hasta: new Date(anio, mes, parseInt(m1[2])),
+        };
+      }
+      // Rango entre meses: "del 23 de febrero al 01 de marzo 2026"
+      const m2 = titulo.match(/V[áa]lido del?\s+(\d+)\s+de\s+([a-záéíóúñ]+)\s+al\s+(\d+)\s+de\s+([a-záéíóúñ]+)\s+(?:del?\s+)?(\d{4})/i);
+      if (m2) {
+        const anio = parseInt(m2[5]);
+        return {
+          desde: new Date(anio, MESES[m2[2].toLowerCase()]??0, parseInt(m2[1])),
+          hasta: new Date(anio, MESES[m2[4].toLowerCase()]??0, parseInt(m2[3])),
+        };
+      }
+      return null;
+    }
 
-    // Extraer título del aviso más reciente
-    const tituloMatch = text.match(/AVISO ESPECIAL[^\r\n]{5,80}/i);
-    const titulo = tituloMatch ? tituloMatch[0].trim().replace(/\s+/g,' ') : 'Aviso Especial Vigente';
+    // ── Extraer bloques de avisos separados del HTML ──
+    // Cada bloque contiene el texto del aviso entre dos "AVISO ESPECIAL"
+    const avisoTitles = [...text.matchAll(/AVISO ESPECIAL[^\r\n]{5,120}/gi)].map(m => m[0].trim().replace(/\s+/g,' '));
 
-    // Extraer el texto principal del aviso (primera sección de texto largo)
-    // Buscar el párrafo descriptivo después del título
-    const mainTextMatch = text.match(/La Marina de Guerra del Perú[^.]{20,400}\./i);
-    const mainText = mainTextMatch ? mainTextMatch[0].trim().replace(/\s+/g,' ') : '';
+    // Extraer PDFs en orden
+    const pdfList  = [...html.matchAll(/href="(https:\/\/www\.dhn\.mil\.pe\/Archivos\/Oceanografia\/Avisoespecial\/[^"]+\.pdf)"/gi)].map(m => m[1]);
+    const viewList = [...html.matchAll(/href="(https:\/\/www\.dhn\.mil\.pe\/portal\/pdf-aviso-especial\/(\d+))"/gi)].map(m => ({url:m[1],id:m[2]}));
 
-    // Extraer fecha
-    const fechaMatch = text.match(/Callao,\s*(\d+\s+de\s+[a-záéíóúñ]+\s+\d{4})/i);
+    // Extraer bloques de texto por aviso
+    // Dividir el texto completo usando los títulos como delimitadores
+    let blocks = [];
+    let lastIdx = 0;
+    for (let i = 0; i < avisoTitles.length; i++) {
+      const title = avisoTitles[i];
+      const idx = text.indexOf(title, lastIdx);
+      if (idx === -1) continue;
+      const nextIdx = i+1 < avisoTitles.length ? text.indexOf(avisoTitles[i+1], idx+1) : text.length;
+      blocks.push({
+        titulo: title,
+        blockText: text.substring(idx, nextIdx > -1 ? nextIdx : idx + 1500),
+        pdfUrl: pdfList[i] || null,
+        viewer: viewList[i] || null,
+      });
+      lastIdx = idx + 1;
+    }
+
+    // ── Seleccionar el aviso vigente HOY ──
+    // Prioridad: 1) vigente hoy, 2) más reciente anterior a hoy, 3) primero de la lista
+    let selected = null;
+
+    for (const block of blocks) {
+      const validez = parseValidez(block.titulo);
+      if (!validez) continue;
+      const desde = validez.desde;
+      const hasta = new Date(validez.hasta);
+      hasta.setHours(23,59,59,999);
+      if (today >= desde && today <= hasta) {
+        selected = { ...block, validez, estado: 'vigente' };
+        break;
+      }
+    }
+
+    // Si no hay vigente hoy, tomar el más reciente cuya fecha hasta sea la más cercana a hoy
+    if (!selected && blocks.length > 0) {
+      // Buscar el más reciente que ya comenzó pero aún no tiene validez conocida
+      // o el primero de la lista como fallback
+      for (const block of blocks) {
+        const validez = parseValidez(block.titulo);
+        if (validez && validez.desde > today) {
+          // Aviso futuro — marcarlo como tal
+          selected = { ...block, validez, estado: 'proximo' };
+          // No hacer break — quizá hay uno pasado más relevante
+          continue;
+        }
+        if (!selected) {
+          selected = { ...block, validez, estado: validez ? 'expirado' : 'desconocido' };
+        }
+      }
+      // Si solo hay uno futuro, usarlo de todas formas
+      if (!selected) selected = { ...blocks[0], validez: parseValidez(blocks[0].titulo), estado: 'proximo' };
+    }
+
+    if (!selected) return null;
+
+    // ── Extraer contenido del bloque seleccionado ──
+    const btext = selected.blockText;
+
+    // Texto principal del aviso (primer párrafo largo de la Marina)
+    const mainMatch = btext.match(/La Marina de Guerra[^.]{30,500}\./i);
+    const mainText = mainMatch ? mainMatch[0].replace(/\s+/g,' ').trim() : '';
+
+    // Litoral centro específico del bloque
+    const lcMatch = btext.match(/[Ll]itoral\s+[Cc]entro[^:]*:([\s\S]{10,300}?)(?:[Ll]itoral\s+[Ss]ur|[Ll]itoral\s+[Nn]orte|Se\s+recomienda|Se\s+exhorta|\d+\s*\.)/);
+    const litCentro = lcMatch ? lcMatch[1].replace(/\s+/g,' ').trim() : (mainText.substring(0,200) || 'Ver documento oficial.');
+
+    // Litoral norte del mismo bloque
+    const lnMatch = btext.match(/[Ll]itoral\s+[Nn]orte[^:]*:([\s\S]{10,200}?)(?:[Ll]itoral\s+[Cc]entro|[Ll]itoral\s+[Ss]ur|Se\s+recomienda|\d+\s*\.)/);
+    const litNorte = lnMatch ? lnMatch[1].replace(/\s+/g,' ').trim() : '—';
+
+    // Fecha de emisión (Callao, DD de mes YYYY)
+    const fechaMatch = btext.match(/Callao,\s*(\d+\s+de\s+[a-záéíóúñ]+\s+(?:del?\s+)?\d{4})/i);
     const fecha = fechaMatch ? fechaMatch[1] : null;
 
-    // Extraer estado por sección litoral
-    const litCentroMatch = text.match(/Litoral Centro[^:]*:([\s\S]{10,200}?)(?:Litoral Sur|Litoral Norte|c\.|Los oleajes|Se recomienda)/i);
-    const litCentroRaw = litCentroMatch ? litCentroMatch[1].replace(/\s+/g,' ').trim() : null;
+    // Determinar tipo
+    const isOleaje = selected.pdfUrl && /oleajes/i.test(selected.pdfUrl);
+    const isViento = selected.pdfUrl && /vientos/i.test(selected.pdfUrl);
 
-    // Determinar severidad del litoral centro (Lima)
+    // Severidad — solo del bloque vigente
     let severityLabel = 'Sin alertas activas', icon = '✅', color = 'var(--green)';
-    const checkText = (litCentroRaw || mainText || titulo).toLowerCase();
+    const checkText = (litCentro + ' ' + mainText).toLowerCase();
+    if (/muy fuerte/i.test(checkText))       { severityLabel='Oleaje Muy Fuerte';    icon='🚨'; color='var(--red)';   }
+    else if (/fuerte/i.test(checkText))      { severityLabel='Oleaje Fuerte';         icon='⚠️'; color='var(--red)';   }
+    else if (/moderado/i.test(checkText))    { severityLabel='Oleaje Moderado';       icon='⚠️'; color='var(--amber)'; }
+    else if (/ligero/i.test(checkText))      { severityLabel='Oleaje Ligero';         icon='🔶'; color='var(--amber)'; }
+    else if (/brisa\s+fuerte/i.test(checkText)){severityLabel='Brisa Fuerte';         icon='💨'; color='var(--red)';   }
+    else if (/brisa\s+fresca/i.test(checkText)){severityLabel='Brisa Fresca';         icon='💨'; color='var(--amber)'; }
+    else if (/brisa/i.test(checkText))       { severityLabel='Aviso de Viento';       icon='💨'; color='var(--amber)'; }
+    else if (/normal/i.test(checkText))      { severityLabel='Condiciones Normales';  icon='✅'; color='var(--green)'; }
 
-    if (/muy fuerte/i.test(checkText))      { severityLabel='Oleaje Muy Fuerte';   icon='🚨'; color='var(--red)';   }
-    else if (/fuerte/i.test(checkText))     { severityLabel='Oleaje Fuerte';        icon='⚠️'; color='var(--red)';   }
-    else if (/moderado/i.test(checkText))   { severityLabel='Oleaje Moderado';      icon='⚠️'; color='var(--amber)'; }
-    else if (/ligero/i.test(checkText))     { severityLabel='Oleaje Ligero';        icon='🔶'; color='var(--amber)'; }
-    else if (/brisa fresca/i.test(checkText)){severityLabel='Brisa Fresca';         icon='💨'; color='var(--amber)'; }
-    else if (/brisa/i.test(checkText))      { severityLabel='Aviso de Viento';      icon='💨'; color='var(--amber)'; }
-    else if (/normal/i.test(checkText))     { severityLabel='Condiciones Normales'; icon='✅'; color='var(--green)'; }
+    // Estado de vigencia para mostrar en UI
+    let estadoLabel = '';
+    if (selected.estado === 'vigente')      estadoLabel = 'Vigente hoy';
+    else if (selected.estado === 'proximo') estadoLabel = 'Próximo — aún no inicia';
+    else if (selected.estado === 'expirado')estadoLabel = 'Último aviso registrado';
 
-    // Google Docs Viewer URL para embeber el PDF sin CORS
-    const gdocsUrl = pdfUrl
-      ? `https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`
+    const gdocsUrl = selected.pdfUrl
+      ? 'https://docs.google.com/viewer?url=' + encodeURIComponent(selected.pdfUrl) + '&embedded=true'
       : null;
 
     return {
-      titulo,
+      titulo: selected.titulo,
       tipo: isOleaje ? 'Oleaje Anómalo' : isViento ? 'Aviso de Viento' : 'Aviso Especial',
-      fecha,
+      fecha, estadoLabel,
       severityLabel, icon, color,
       mainText,
-      litCentro: litCentroRaw || mainText.substring(0, 180) || 'Ver documento oficial.',
-      pdfUrl,
-      pdfViewerUrl,
+      litCentro,
+      litNorte,
+      pdfUrl: selected.pdfUrl,
+      pdfViewerUrl: selected.viewer?.url || null,
       gdocsUrl,
-      avisoId,
+      avisoId: selected.viewer?.id || null,
+      estado: selected.estado,
     };
   } catch(e) {
     console.warn('parseDHNAvisos error:', e);
@@ -1580,6 +1680,7 @@ function renderDHNCard(dhn, mareas) {
       </div>
       <span class="dhn-badge" style="color:${dhn.color};border-color:${dhn.color}44;background:${dhn.color}11">${dhn.tipo}</span>
     </div>
+    ${dhn.estadoLabel ? '<div style="font-family:var(--fm);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;padding:4px 15px 0;color:' + (dhn.estado==='vigente'?'var(--green)':dhn.estado==='proximo'?'var(--amber)':'var(--ts)') + '">' + (dhn.estado==='vigente'?'● Vigente hoy':'○ ' + dhn.estadoLabel) + '</div>' : ''}
     <div class="dhn-body">
 
       <div class="dhn-row" style="margin-bottom:10px">
