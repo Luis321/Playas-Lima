@@ -77,14 +77,38 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
 /* Level pills */
 .lv-wrap{display:flex;gap:2px;background:var(--d2);border:1px solid var(--edge);border-radius:10px;padding:3px}
 .lv{
-  font-family:var(--fm);font-size:.58rem;font-weight:500;
-  letter-spacing:.07em;text-transform:uppercase;
-  padding:6px 11px;border-radius:7px;
-  color:var(--ts);transition:all .2s;
+  font-family:var(--fm);font-size:.57rem;font-weight:500;
+  letter-spacing:.06em;text-transform:uppercase;
+  padding:6px 10px;border-radius:7px;
+  color:var(--ts);transition:all .25s;
   white-space:nowrap;min-height:32px;
-  display:flex;align-items:center;
+  display:flex;align-items:center;gap:5px;
+  cursor:pointer;position:relative;
 }
+/* Estado: nivel seleccionado activo */
 .lv.on{background:var(--d3);color:var(--tp);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+/* Estado: nivel puede nadar (verde) */
+.lv.can-swim{color:var(--green)}
+.lv.can-swim .lv-dot{background:var(--green)}
+.lv.can-swim.on{background:rgba(0,229,160,.12);border:1px solid rgba(0,229,160,.3);color:var(--green)}
+/* Estado: nivel con precaución (ámbar) */
+.lv.caution{color:var(--amber)}
+.lv.caution .lv-dot{background:var(--amber)}
+.lv.caution.on{background:rgba(255,167,38,.12);border:1px solid rgba(255,167,38,.3);color:var(--amber)}
+/* Estado: nivel no puede nadar (rojo) */
+.lv.no-swim{color:var(--ts);opacity:.55}
+.lv.no-swim .lv-dot{background:var(--red)}
+.lv.no-swim.on{background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.25);color:var(--red);opacity:1}
+/* Dot indicador */
+.lv-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--tm);transition:background .25s}
+/* Tooltip debajo del selector */
+.lv-hint{
+  font-family:var(--fm);font-size:.52rem;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ts);text-align:center;
+  padding:3px 0 0;margin:0 3px;
+  transition:opacity .3s;
+}
 
 /* Row 2: beach tabs */
 .nav-r2{
@@ -426,6 +450,29 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
 /* bottom padding */
 .pb{height:20px}
 
+/* ══════════════ LEVELS ROW ══════════════ */
+.levels-row{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:6px;margin-bottom:10px;width:100%;
+}
+.lv-apt{
+  display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding:8px 6px;border-radius:9px;
+  border:1px solid;text-align:center;
+  transition:all .25s;
+}
+.lv-apt-active{
+  box-shadow:0 0 12px rgba(255,255,255,.06);
+}
+.lv-apt-icon{
+  font-size:.8rem;font-weight:700;
+  font-family:var(--fm);line-height:1;
+}
+.lv-apt-label{
+  font-family:var(--fm);font-size:.55rem;
+  letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ts);line-height:1;
+}
 /* ══════ DIHIDRONAV MODULE ══════ */
 .dhn-card{background:var(--d1);border:1px solid var(--edge);border-radius:14px;overflow:hidden;margin-bottom:8px}
 .dhn-hd{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--edge);background:rgba(0,180,220,.05)}
@@ -476,10 +523,19 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
   <!-- Fila 1: brand + nivel -->
   <div class="nav-r1">
     <div class="brand">OW<span> Lima</span></div>
-    <div class="lv-wrap" id="lvWrap">
-      <button class="lv" data-lv="beginner"     onclick="setLevel('beginner')">Prin</button>
-      <button class="lv on" data-lv="intermediate" onclick="setLevel('intermediate')">Inter</button>
-      <button class="lv" data-lv="advanced"     onclick="setLevel('advanced')">Avanz</button>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+      <div class="lv-wrap" id="lvWrap">
+        <button class="lv" data-lv="beginner" onclick="setLevel('beginner')">
+          <span class="lv-dot" id="dot-beginner"></span>Prin
+        </button>
+        <button class="lv on" data-lv="intermediate" onclick="setLevel('intermediate')">
+          <span class="lv-dot" id="dot-intermediate"></span>Inter
+        </button>
+        <button class="lv" data-lv="advanced" onclick="setLevel('advanced')">
+          <span class="lv-dot" id="dot-advanced"></span>Avanz
+        </button>
+      </div>
+      <div class="lv-hint" id="lvHint">Tu nivel de natación</div>
     </div>
   </div>
   <!-- Fila 2: beach tabs -->
@@ -524,13 +580,117 @@ const DIGESA_MAP={
   nd: {cls:'nd', icon:'⚪',t:'Sin datos — DIGESA',   s:'Verificar: veranosaludable.minsa.gob.pe'},
 };
 const LEVEL_THR={
-  beginner:    {wave:.7, wind:12, label:'Principiante'},
-  intermediate:{wave:1.0,wind:15, label:'Intermedio'},
-  advanced:    {wave:1.4,wind:20, label:'Avanzado'},
+  beginner:    {wave:.7, wind:12, period:8,  label:'Principiante'},
+  intermediate:{wave:1.0,wind:15, period:7,  label:'Intermedio'},
+  advanced:    {wave:1.4,wind:20, period:6,  label:'Avanzado'},
 };
 
+/* ─── SCORE POR NIVEL ─── */
+function calcScoreByLevel(wh, wp, ws, uv, lv) {
+  // Base score igual para todos
+  let s = 100;
+  const thr = LEVEL_THR[lv];
+  // Oleaje — penalización relativa al umbral del nivel
+  const waveRatio = wh / thr.wave;
+  if (waveRatio > 3.5) s -= 55;
+  else if (waveRatio > 2.5) s -= 38;
+  else if (waveRatio > 1.8) s -= 22;
+  else if (waveRatio > 1.2) s -= 10;
+  else if (waveRatio > 0.8) s -= 3;
+  // Período
+  if (wp < thr.period - 2) s -= 22;
+  else if (wp < thr.period) s -= 12;
+  // Viento — relativo al umbral
+  const windRatio = ws / thr.wind;
+  if (windRatio > 2.5) s -= 28;
+  else if (windRatio > 1.8) s -= 15;
+  else if (windRatio > 1.2) s -= 5;
+  // UV
+  if (uv > 11) s -= 8;
+  return Math.max(0, Math.min(100, Math.round(s)));
+}
+
+/* ─── DETECTAR NIVELES APTOS ─── */
+function detectLevels(d) {
+  const wh = d.marine.current?.wave_height   ?? 0;
+  const wp = d.marine.current?.wave_period   ?? 10;
+  const ws = d.weather.current?.wind_speed_10m ?? 0;
+  const uv = d.weather.current?.uv_index     ?? 0;
+  const sw = d.marine.current?.swell_wave_height ?? 0;
+  const dgBad = BEACHES[active]?.digesa === 'bad';
+
+  // Si DIGESA no saludable: nadie puede nadar
+  if (dgBad) return {
+    beginner:    {status:'no',  label:'No apto — sanitario', color:'var(--red)'},
+    intermediate:{status:'no',  label:'No apto — sanitario', color:'var(--red)'},
+    advanced:    {status:'no',  label:'No apto — sanitario', color:'var(--red)'},
+    recommended: null,
+    summary: 'Agua no apta — DIGESA',
+  };
+
+  const levels = {};
+  ['beginner','intermediate','advanced'].forEach(lv => {
+    const thr = LEVEL_THR[lv];
+    const sc = calcScoreByLevel(wh, wp, ws, uv, lv);
+    let status, label, color;
+
+    if (sc >= 75 && wh <= thr.wave && ws <= thr.wind) {
+      status = 'can';  label = 'Apto';       color = 'var(--green)';
+    } else if (sc >= 45 && wh <= thr.wave * 1.4) {
+      status = 'warn'; label = 'Precaución'; color = 'var(--amber)';
+    } else {
+      status = 'no';   label = 'No apto';    color = 'var(--red)';
+    }
+    levels[lv] = {status, label, color, score: sc};
+  });
+
+  // Nivel recomendado = el más bajo que puede nadar
+  let recommended = null;
+  if (levels.beginner.status === 'can') recommended = 'beginner';
+  else if (levels.intermediate.status === 'can') recommended = 'intermediate';
+  else if (levels.advanced.status === 'can') recommended = 'advanced';
+
+  // Resumen humano
+  let summary;
+  if (levels.beginner.status === 'can')          summary = 'Todos los niveles pueden nadar';
+  else if (levels.intermediate.status === 'can') summary = 'Intermedio y Avanzado';
+  else if (levels.advanced.status === 'can')     summary = 'Solo Avanzados';
+  else if (levels.advanced.status === 'warn')    summary = 'Avanzados con precaución';
+  else                                           summary = 'No recomendado para nadie';
+
+  return { ...levels, recommended, summary };
+}
+
+/* ─── ACTUALIZAR UI DEL SELECTOR DE NIVEL ─── */
+function updateLevelUI(lvData) {
+  if (!lvData) return;
+  ['beginner','intermediate','advanced'].forEach(lv => {
+    const btn = document.querySelector(`[data-lv="${lv}"]`);
+    const dot = document.getElementById(`dot-${lv}`);
+    if (!btn || !dot) return;
+
+    // Limpiar clases de estado
+    btn.classList.remove('can-swim','caution','no-swim');
+    const info = lvData[lv];
+
+    if (info.status === 'can')  { btn.classList.add('can-swim');  dot.style.background = 'var(--green)'; }
+    else if (info.status === 'warn') { btn.classList.add('caution');  dot.style.background = 'var(--amber)'; }
+    else                        { btn.classList.add('no-swim');   dot.style.background = 'var(--red)'; }
+  });
+
+  // Hint debajo del selector
+  const hint = document.getElementById('lvHint');
+  if (hint) {
+    hint.textContent = lvData.summary || '';
+    const col = lvData.beginner?.status === 'can' ? 'var(--green)' :
+                lvData.intermediate?.status === 'can' ? 'var(--amber)' :
+                lvData.advanced?.status === 'can' ? 'var(--amber)' : 'var(--red)';
+    hint.style.color = col;
+  }
+}
+
 /* ═══════════ STATE ═══════════ */
-let active=0, level='intermediate', cache={};
+let active=0, level='intermediate', cache={}, dhnCache=undefined, mareaCache=undefined;
 
 /* ═══════════ FETCH ═══════════ */
 async function fetchBeach(b){
@@ -553,7 +713,7 @@ function calcScore(wh,wp,ws,uv){
 }
 function scoreFromData(d){
   const m=d.marine.current??{},w=d.weather.current??{};
-  return calcScore(m.wave_height??1.5,m.wave_period??8,w.wind_speed_10m??15,w.uv_index??5);
+  return calcScoreByLevel(m.wave_height??1.5,m.wave_period??8,w.wind_speed_10m??15,w.uv_index??0,level);
 }
 function getVerdict(s){
   if(s>=75)return{txt:'APTO PARA NADAR',  phrase:'Sí, puedes nadar hoy',       col:'var(--green)',atm:'#003d20'};
@@ -770,7 +930,8 @@ function initBgWaves(){
 }
 
 /* ═══════════ RENDER PAGE ═══════════ */
-function renderPage(beach,d){
+function renderPage(beach,d,lvData){
+  lvData = lvData || detectLevels(d);
   const sc  =scoreFromData(d);
   const vd  =getVerdict(sc);
   const flag=getFlag(sc,beach.digesa);
@@ -843,6 +1004,22 @@ function renderPage(beach,d){
   }
   setAtm(vd);
 
+  // Pre-computar HTML de niveles (evita template literals anidados)
+  const LVNAMES = {beginner:'Principiante',intermediate:'Intermedio',advanced:'Avanzado'};
+  const LVICONS = {can:'✓', warn:'~', no:'✗'};
+  const levelsHTML = ['beginner','intermediate','advanced'].map(lv => {
+    const info = lvData[lv];
+    const isActive = lv === level;
+    const bg = info.status==='can'?'rgba(0,229,160,.1)':info.status==='warn'?'rgba(255,167,38,.1)':'rgba(255,61,90,.08)';
+    const bc = info.status==='can'?'rgba(0,229,160,.3)':info.status==='warn'?'rgba(255,167,38,.28)':'rgba(255,61,90,.22)';
+    const activeStyle = isActive ? ' lv-apt-active' : '';
+    const labelColor = isActive ? info.color : 'var(--ts)';
+    return '<div class="lv-apt' + activeStyle + '" style="background:' + bg + ';border-color:' + bc + '">' +
+      '<span class="lv-apt-icon" style="color:' + info.color + '">' + LVICONS[info.status] + '</span>' +
+      '<span class="lv-apt-label" style="color:' + labelColor + '">' + LVNAMES[lv] + '</span>' +
+      '</div>';
+  }).join('');
+
   return`
 <!-- ═══ HERO ═══ -->
 <section class="hero">
@@ -875,9 +1052,12 @@ function renderPage(beach,d){
       <span class="vd-dot" style="background:${vd.col}"></span>
       <div>
         <div class="vd-label" style="color:${vd.col}">${vd.txt}</div>
-        <div class="vd-phrase">${vd.phrase} · ${thr.label}</div>
+        <div class="vd-phrase">${vd.phrase}</div>
       </div>
     </div>
+
+    <!-- Niveles aptos — bloque clave -->
+    <div class="levels-row fu fu2">${levelsHTML}</div>
 
     <!-- KPIs -->
     <div class="hero-kpis fu fu3">
@@ -1028,16 +1208,16 @@ function renderPage(beach,d){
   <div class="pb"></div>
 </div>`;
 
-  // Inyectar DIHIDRONAV tras render
-  setTimeout(async () => {
+  // Inyectar DIHIDRONAV desde cache (ya cargado en background por init)
+  setTimeout(() => {
     const slot = document.getElementById('dhn-slot');
     if (!slot) return;
-    const [dhn, mar] = await Promise.all([
-      dhnCache ? Promise.resolve(dhnCache) : fetchDHN(),
-      mareaCache ? Promise.resolve(mareaCache) : fetchMareas(),
-    ]);
-    slot.innerHTML = renderDHNCard(dhn, mar);
-  }, 200);
+    // Si ya hay cache, renderizar de inmediato
+    if (dhnCache !== undefined) {
+      slot.innerHTML = renderDHNCard(dhnCache, mareaCache);
+    }
+    // Si no hay cache aún, el init lo inyectará cuando termine
+  }, 300);
 }
 
 /* ═══════════ GUIDE ═══════════ */
@@ -1112,9 +1292,15 @@ function tS(hd){hd.nextElementSibling.classList.toggle('open');hd.querySelector(
 /* ═══════════ LEVEL ═══════════ */
 function setLevel(lv){
   level=lv;
+  // Marcar botón seleccionado
   document.querySelectorAll('.lv').forEach(b=>b.classList.toggle('on',b.dataset.lv===lv));
+  // Re-renderizar con nuevo score por nivel
   const beach=BEACHES[active];
-  if(cache[beach.id])renderBeach(beach,cache[beach.id]);
+  if(cache[beach.id]){
+    const lvData=detectLevels(cache[beach.id]);
+    updateLevelUI(lvData);
+    renderBeach(beach,cache[beach.id]);
+  }
 }
 
 /* ═══════════ PICK ═══════════ */
@@ -1144,8 +1330,11 @@ async function pick(idx){
 function renderBeach(beach,d){
   const app=document.getElementById('app');
   app.style.opacity='0';
+  // Actualizar UI del selector de nivel con los datos actuales
+  const lvData=detectLevels(d);
+  updateLevelUI(lvData);
   setTimeout(()=>{
-    app.innerHTML=renderPage(beach,d);
+    app.innerHTML=renderPage(beach,d,lvData);
     const wh=d.marine.current?.wave_height??0;
     requestAnimationFrame(()=>{
       initHeroCanvas(wh);
@@ -1177,9 +1366,7 @@ function initBgWaves(){
 }
 
 /* ═══════════ DIHIDRONAV ═══════════ */
-// Cache global para avisos y mareas
-let dhnCache = null;
-let mareaCache = null;
+// Cache global para avisos y mareas (inicializados en state arriba)
 
 async function fetchDHN() {
   if (dhnCache) return dhnCache;
@@ -1207,8 +1394,7 @@ function parseDHNAvisos(html) {
   const bodyText = doc.body?.innerText || doc.body?.textContent || '';
   
   // Extraer título del aviso
-  const avisoMatch = bodyText.match(/AVISO ESPECIAL[^
-]*/i);
+  const avisoMatch = bodyText.match(/AVISO ESPECIAL[^\r\n]*/i);
   const avisoTitulo = avisoMatch ? avisoMatch[0].trim() : 'Aviso Especial Vigente';
   
   // Determinar tipo: oleaje o viento
@@ -1220,11 +1406,11 @@ function parseDHNAvisos(html) {
   const fecha = fechaMatch ? fechaMatch[1] : null;
   
   // Extraer litoral centro (Lima)
-  const litCentroMatch = bodyText.match(/Litoral Centro[^c]*?((?:oleaje|brisa|viento)[^.]*\.)/i);
+  const litCentroMatch = bodyText.match(/Litoral Centro[\s\S]*?((?:oleaje|brisa|viento)[^.]*\.)/i);
   const litCentro = litCentroMatch ? litCentroMatch[1].trim() : null;
   
   // Extraer litoral norte
-  const litNorteMatch = bodyText.match(/Litoral Norte[^c]*?((?:oleaje|brisa|viento|persiste)[^.]*\.)/i);
+  const litNorteMatch = bodyText.match(/Litoral Norte[\s\S]*?((?:oleaje|brisa|viento|persiste)[^.]*\.)/i);
   const litNorte = litNorteMatch ? litNorteMatch[1].trim() : null;
   
   // Determinar severidad para Lima
@@ -1248,8 +1434,7 @@ function parseDHNAvisos(html) {
   let litCentroFull = '';
   if (linesIdx > -1) {
     litCentroFull = bodyText.substring(linesIdx, linesIdx + 400)
-      .split('
-').slice(0, 6).join(' ').replace(/\s+/g,' ').trim();
+      .split('\n').slice(0, 6).join(' ').replace(/\s+/g,' ').trim();
   }
   
   return {
@@ -1383,19 +1568,28 @@ function renderDHNCard(dhn, mareas) {
 
 /* ═══════════ INIT ═══════════ */
 async function init(){
-  initBgWaves();renderRail();
-  // Cargar playa y DIHIDRONAV en paralelo
-  const [_] = await Promise.all([
-    pick(0),
-    fetchDHN().then(d => { dhnCache = d; }),
-    fetchMareas().then(m => { mareaCache = m; }),
-  ]);
+  initBgWaves();
+  renderRail();
+
+  // 1. Cargar datos principales (Open-Meteo) — PRIMERO, sin DIHIDRONAV
+  await pick(0);
   updateTime();
-  // Re-render con datos DIHIDRONAV ya disponibles
-  const beach = BEACHES[active];
-  if (cache[beach.id]) renderBeach(beach, cache[beach.id]);
-  const ld=document.getElementById('loader');
-  ld.classList.add('out');setTimeout(()=>ld.remove(),700);
+
+  // 2. Esconder loader
+  const ld = document.getElementById('loader');
+  if (ld) { ld.classList.add('out'); setTimeout(() => ld?.remove(), 700); }
+
+  // 3. DIHIDRONAV en background — no bloquea nada
+  Promise.allSettled([
+    fetchDHN(),
+    fetchMareas(),
+  ]).then(([dhnResult, marResult]) => {
+    dhnCache  = dhnResult.status  === 'fulfilled' ? dhnResult.value  : null;
+    mareaCache = marResult.status === 'fulfilled' ? marResult.value : null;
+    // Actualizar solo el slot DIHIDRONAV si está visible
+    const slot = document.getElementById('dhn-slot');
+    if (slot) slot.innerHTML = renderDHNCard(dhnCache, mareaCache);
+  }).catch(() => {});
 }
 window.addEventListener('DOMContentLoaded',init);
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
