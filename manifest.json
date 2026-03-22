@@ -2,7 +2,8 @@
   "name": "OW Lima — Open Water",
   "short_name": "OW Lima",
   "description": "Estado de playas de Lima para nadadores de aguas abiertas",
-  "start_url": "/index.html",
+  "start_url": "/Playas-Lima/index.html",
+  "scope": "/Playas-Lima/",
   "display": "standalone",
   "background_color": "#020c1a",
   "theme_color": "#020c1a",
@@ -10,7 +11,17 @@
   "lang": "es-PE",
   "categories": ["sports","weather"],
   "icons": [
-    {"src":"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%23020c1a'/%3E%3Ctext x='96' y='136' font-size='100' text-anchor='middle'%3E🌊%3C/text%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},
-    {"src":"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23020c1a'/%3E%3Ctext x='256' y='360' font-size='280' text-anchor='middle'%3E🌊%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%23020c1a'/%3E%3Ctext x='96' y='136' font-size='100' text-anchor='middle'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%23020c1a'/%3E%3Ctext x='256' y='360' font-size='280' text-anchor='middle'%3E%F0%9F%8C%8A%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
