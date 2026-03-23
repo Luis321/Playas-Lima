@@ -478,13 +478,13 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
 .tip{padding:9px 11px;background:rgba(0,212,255,.04);border-left:2px solid rgba(0,212,255,.2);border-radius:0 7px 7px 0;margin-top:9px;font-size:.68rem;color:var(--ts);line-height:1.5}
 .cols2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 @media(max-width:360px){.cols2{grid-template-columns:1fr}}
-.compass-wrap{display:flex;align-items:center;gap:12px;margin-top:4px}
+.compass-wrap{display:flex;align-items:flex-start;gap:12px;margin-top:4px}
 .compass-svg{width:58px;height:58px;flex-shrink:0}
-.c-spd{font-family:var(--fm);font-size:1.35rem;font-weight:500;line-height:1}
-.c-u{font-size:.6rem;color:var(--ts)}
-.c-dir{font-size:.7rem;color:var(--ts);margin-top:3px}
-.c-desc{font-size:.65rem;color:var(--ts);margin-top:1px}
-.c-impact{font-size:.65rem;margin-top:2px}
+.c-spd{font-family:var(--fm);font-size:1.25rem;font-weight:500;line-height:1}
+.c-u{font-size:.58rem;color:var(--ts)}
+.c-dir{font-size:.67rem;color:var(--ts);margin-top:3px}
+.c-desc{font-size:.64rem;color:var(--ts);margin-top:1px}
+.c-impact{font-size:.64rem;margin-top:2px;word-break:break-word;max-width:90px}
 .temp-g{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px}
 .temp-b{background:var(--d2);border-radius:9px;padding:11px;text-align:center}
 .tv{font-family:var(--fm);font-size:1.55rem;font-weight:500;line-height:1}
@@ -607,6 +607,125 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
   letter-spacing:.07em;text-transform:uppercase;
   color:var(--ts);line-height:1;
 }
+
+/* ── NIVELES TEXTO CLARO ── */
+.lv-apt { flex-direction:column; gap:3px }
+.lv-apt-label { font-size:.58rem; font-family:var(--fb); font-weight:500 }
+.lv-apt-verdict {
+  font-size:.6rem; font-family:var(--fm);
+  letter-spacing:.05em; margin-top:2px;
+}
+
+/* ── SECCIONES JERARQUÍA ── */
+.sec-primary { border-color:rgba(0,212,255,.14) }
+.sec-secondary { opacity:.92 }
+.sec-label-big {
+  font-family:var(--fm); font-size:1.5rem; font-weight:500;
+  line-height:1; display:block;
+}
+.sec-label-unit { font-size:.6rem; color:var(--ts) }
+.sec-label-desc { font-size:.72rem; font-weight:500; margin-top:3px }
+
+/* ── STALE DATA BADGE ── */
+.stale-bar {
+  display:none; align-items:center; gap:8px;
+  background:rgba(255,167,38,.1); border:1px solid rgba(255,167,38,.3);
+  border-radius:8px; padding:9px 13px; margin-bottom:10px;
+  font-size:.7rem; color:var(--amber); cursor:pointer;
+  transition:all .2s;
+}
+.stale-bar.show { display:flex }
+.stale-bar svg { width:14px; height:14px; flex-shrink:0 }
+
+/* ── OFFLINE BANNER ── */
+#offlineBanner {
+  position:fixed; top:0; left:0; right:0; z-index:500;
+  background:rgba(255,61,90,.9); color:#fff;
+  font-family:var(--fm); font-size:.6rem; letter-spacing:.12em;
+  text-transform:uppercase; text-align:center;
+  padding:8px; transform:translateY(-100%);
+  transition:transform .3s ease; backdrop-filter:blur(8px);
+}
+#offlineBanner.show { transform:translateY(0) }
+
+/* ── ONBOARDING MODAL ── */
+#onboarding {
+  position:fixed; inset:0; z-index:9000;
+  background:rgba(2,12,26,.92); backdrop-filter:blur(20px);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:24px; transition:opacity .4s;
+}
+#onboarding.out { opacity:0; pointer-events:none }
+.ob-card {
+  background:var(--d1); border:1px solid var(--edge2);
+  border-radius:20px; padding:28px 24px; max-width:360px;
+  width:100%; text-align:center;
+}
+.ob-step {
+  display:none; flex-direction:column;
+  align-items:center; gap:14px;
+}
+.ob-step.active { display:flex }
+.ob-icon { font-size:2.8rem }
+.ob-title {
+  font-family:var(--fh); font-size:1.3rem;
+  font-weight:800; letter-spacing:-.01em; color:var(--tp);
+}
+.ob-desc { font-size:.82rem; color:var(--ts); line-height:1.6; max-width:280px }
+.ob-dots {
+  display:flex; gap:6px; justify-content:center; margin-top:4px;
+}
+.ob-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--d3); transition:background .2s;
+}
+.ob-dot.on { background:var(--cyan) }
+.ob-btn {
+  width:100%; padding:14px; border-radius:10px;
+  background:var(--cyan); color:#000;
+  font-family:var(--fh); font-size:.9rem; font-weight:700;
+  letter-spacing:.04em; cursor:pointer; border:none;
+  margin-top:6px; transition:opacity .2s;
+}
+.ob-btn:active { opacity:.8 }
+.ob-skip {
+  font-family:var(--fm); font-size:.6rem;
+  color:var(--ts); letter-spacing:.1em; text-transform:uppercase;
+  cursor:pointer; margin-top:10px; background:none; border:none;
+}
+
+/* ── DIHIDRONAV IDENTITY ── */
+.dhn-hd {
+  background: linear-gradient(135deg, rgba(0,40,100,.4) 0%, rgba(0,60,130,.2) 100%) !important;
+  border-bottom: 1px solid rgba(0,130,200,.25) !important;
+}
+.dhn-official-seal {
+  display:flex; align-items:center; gap:6px;
+  font-family:var(--fm); font-size:.52rem;
+  letter-spacing:.1em; text-transform:uppercase;
+  color:rgba(0,180,255,.6);
+  padding:4px 15px 0;
+}
+.dhn-seal-line {
+  flex:1; height:1px;
+  background:linear-gradient(to right, rgba(0,130,200,.3), transparent);
+}
+
+/* ── SEGURIDAD CONTEXTUAL ── */
+.ctx-safety {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 12px; border-radius:9px;
+  background:var(--d2); margin-bottom:7px;
+  border-left:3px solid var(--amber);
+}
+.ctx-safety.info { border-color:var(--cyan) }
+.ctx-safety.warn { border-color:var(--amber) }
+.ctx-safety.danger { border-color:var(--red) }
+.ctx-safety-ico { font-size:.95rem; flex-shrink:0; margin-top:1px }
+.ctx-safety-txt { font-size:.72rem; color:var(--ts); line-height:1.45 }
+.ctx-safety-txt b { color:var(--tp); font-weight:500; display:block; margin-bottom:1px }
+
 /* ══════ DIHIDRONAV MODULE ══════ */
 .dhn-card{background:var(--d1);border:1px solid var(--edge);border-radius:14px;overflow:hidden;margin-bottom:8px}
 .dhn-hd{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--edge);background:rgba(0,180,220,.05)}
@@ -663,6 +782,40 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opac
   <div class="ld-logo">OW<span> Lima</span></div>
   <div class="ld-bar"></div>
   <div class="ld-txt">Cargando datos del mar</div>
+</div>
+
+<!-- Offline banner -->
+<div id="offlineBanner">Sin conexión — mostrando últimos datos guardados</div>
+
+<!-- Onboarding primera vez -->
+<div id="onboarding" style="display:none">
+  <div class="ob-card">
+    <div class="ob-step active" id="ob0">
+      <div class="ob-icon">🌊</div>
+      <div class="ob-title">Bienvenido a OW Lima</div>
+      <div class="ob-desc">Estado en tiempo real de las playas de Lima para nadadores de aguas abiertas.</div>
+    </div>
+    <div class="ob-step" id="ob1">
+      <div class="ob-icon">🏊</div>
+      <div class="ob-title">Elige tu nivel</div>
+      <div class="ob-desc">Toca <b>PRIN</b>, <b>INTER</b> o <b>AVANZ</b> arriba a la derecha. El score, la bandera y el pronóstico se adaptan a tu nivel.</div>
+    </div>
+    <div class="ob-step" id="ob2">
+      <div class="ob-icon">📍</div>
+      <div class="ob-title">Elige tu playa</div>
+      <div class="ob-desc">Desliza los tabs de playa. El punto de color es el semáforo: verde apto, ámbar precaución, rojo no recomendado.</div>
+    </div>
+    <div class="ob-step" id="ob3">
+      <div class="ob-icon">✅</div>
+      <div class="ob-title">Lee el veredicto</div>
+      <div class="ob-desc">El hero responde en 2 segundos: <b>¿puedo nadar aquí hoy?</b> La app recordará tu playa y nivel favoritos.</div>
+    </div>
+    <div class="ob-dots" id="obDots">
+      <div class="ob-dot on"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div>
+    </div>
+    <button class="ob-btn" id="obNext" onclick="obNextStep()">Siguiente →</button>
+    <button class="ob-skip" onclick="closeOnboarding()">Omitir</button>
+  </div>
 </div>
 
 <!-- ═══ TOP NAV — 2 filas ═══ -->
@@ -829,15 +982,112 @@ function updateLevelUI(lvData) {
   const hint = document.getElementById('lvHint');
   if (hint) {
     hint.textContent = lvData.summary || '';
-    const col = lvData.beginner?.status === 'can' ? 'var(--green)' :
-                lvData.intermediate?.status === 'can' ? 'var(--amber)' :
-                lvData.advanced?.status === 'can' ? 'var(--amber)' : 'var(--red)';
+    const curStatus = lvData[level]?.status;
+    const col = curStatus === 'can' ? 'var(--green)' :
+                curStatus === 'warn' ? 'var(--amber)' : 'var(--red)';
     hint.style.color = col;
   }
 }
 
 /* ═══════════ STATE ═══════════ */
 let active=0, level='intermediate', cache={}, dhnCache=undefined, mareaCache=undefined;
+let lastFetchTime = null;
+
+/* ─── MEMORIA: cargar preferencias guardadas ─── */
+function loadPrefs() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('owlima_prefs') || '{}');
+    if (saved.level && LEVEL_THR[saved.level]) level = saved.level;
+    if (typeof saved.active === 'number' && saved.active < BEACHES.length) active = saved.active;
+  } catch(e) {}
+}
+function savePrefs() {
+  try { localStorage.setItem('owlima_prefs', JSON.stringify({level, active})); } catch(e) {}
+}
+
+/* ─── ONBOARDING ─── */
+let obStep = 0;
+function showOnboarding() {
+  try {
+    if (localStorage.getItem('owlima_ob_done')) return;
+  } catch(e) { return; }
+  const el = document.getElementById('onboarding');
+  if (el) { el.style.display = 'flex'; }
+}
+function obNextStep() {
+  const steps = document.querySelectorAll('.ob-step');
+  const dots  = document.querySelectorAll('.ob-dot');
+  const btn   = document.getElementById('obNext');
+  steps[obStep]?.classList.remove('active');
+  dots[obStep]?.classList.remove('on');
+  obStep++;
+  if (obStep >= steps.length) { closeOnboarding(); return; }
+  steps[obStep]?.classList.add('active');
+  dots[obStep]?.classList.add('on');
+  if (btn) btn.textContent = obStep === steps.length - 1 ? 'Empezar 🌊' : 'Siguiente →';
+}
+function closeOnboarding() {
+  try { localStorage.setItem('owlima_ob_done','1'); } catch(e) {}
+  const el = document.getElementById('onboarding');
+  if (el) { el.classList.add('out'); setTimeout(() => { el.style.display='none'; el.classList.remove('out'); }, 450); }
+}
+
+/* ─── OFFLINE ─── */
+function updateOnlineStatus() {
+  const bar = document.getElementById('offlineBanner');
+  if (!bar) return;
+  if (!navigator.onLine) bar.classList.add('show');
+  else bar.classList.remove('show');
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+/* ─── STALE BADGE ─── */
+function checkStale() {
+  const bar = document.querySelector('.stale-bar');
+  if (!bar || !lastFetchTime) return;
+  const mins = (Date.now() - lastFetchTime) / 60000;
+  if (mins > 60) bar.classList.add('show');
+  else bar.classList.remove('show');
+}
+
+/* ─── SEGURIDAD CONTEXTUAL ─── */
+function buildContextualSafety(d) {
+  const wh = d.marine.current?.wave_height ?? 0;
+  const ws = d.weather.current?.wind_speed_10m ?? 0;
+  const wp = d.marine.current?.wave_period ?? 10;
+  const sw = d.marine.current?.swell_wave_height ?? 0;
+  const sst = d.marine.current?.sea_surface_temperature ?? 22;
+  const tips = [];
+
+  // Siempre: nadar acompañado
+  tips.push({cls:'info', ico:'👥', title:'Nadar acompañado', desc:'Nunca solo. Avisa siempre dónde y cuándo nadas.'});
+
+  // Oleaje importante → entrada al agua
+  if (wh >= 1.0) tips.push({cls:'warn', ico:'🌊', title:'Entrada al agua', desc:'Espera entre series de olas. No le des la espalda al mar.'});
+
+  // Corriente → viento lateral
+  if (ws >= 15) tips.push({cls:'warn', ico:'💨', title:'Deriva por viento', desc:`Viento ${Math.round(ws)} km/h — saldrás más lejos de donde entraste. Planifica la ruta contando la deriva.`});
+
+  // Período corto → olas irregulares
+  if (wp < 7)  tips.push({cls:'warn', ico:'⏱️', title:'Olas irregulares', desc:`Período ${wp.toFixed(1)}s — olas cortas y caóticas. Requieren más técnica de entrada.`});
+
+  // Swell alto
+  if (sw >= 1.5) tips.push({cls:'warn', ico:'〰️', title:'Swell activo', desc:`Mar de fondo ${sw.toFixed(1)}m. La energía del mar puede ser mayor de lo que parece en la superficie.`});
+
+  // Agua fría
+  if (sst < 20) tips.push({cls:'info', ico:'🌡️', title:`Agua fría · ${sst.toFixed(1)}°C`, desc:'El frío reduce el rendimiento y puede causar calambres. Usa traje.'});
+
+  // Referencia siempre
+  tips.push({cls:'info', ico:'📍', title:'Punto de referencia', desc:'Identifica un punto en tierra antes de entrar para detectar si estás derivando.'});
+
+  return tips.slice(0, 5).map(t =>
+    '<div class="ctx-safety ' + t.cls + '">' +
+    '<span class="ctx-safety-ico">' + t.ico + '</span>' +
+    '<div class="ctx-safety-txt"><b>' + t.title + '</b>' + t.desc + '</div>' +
+    '</div>'
+  ).join('');
+}
 
 /* ═══════════ FETCH ═══════════ */
 async function fetchBeach(b){
@@ -846,6 +1096,7 @@ async function fetchBeach(b){
     fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&current=wave_height,wave_direction,wave_period,wind_wave_height,wind_wave_period,swell_wave_height,swell_wave_direction,swell_wave_period,sea_surface_temperature&hourly=wave_height,wave_period,swell_wave_height&timezone=America%2FLima&forecast_days=2`),
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,uv_index&hourly=wind_speed_10m,wind_direction_10m,uv_index&timezone=America%2FLima&forecast_days=2`)
   ]);
+  lastFetchTime = Date.now();
   return{marine:await mr.json(),weather:await wr.json()};
 }
 
@@ -862,32 +1113,62 @@ function scoreFromData(d){
   const m=d.marine.current??{},w=d.weather.current??{};
   return calcScoreByLevel(m.wave_height??1.5,m.wave_period??8,w.wind_speed_10m??15,w.uv_index??0,level);
 }
-function getVerdict(s){
-  if(s>=75)return{txt:'APTO PARA NADAR',  phrase:'Sí, puedes nadar hoy',       col:'var(--green)',atm:'#003d20'};
-  if(s>=50)return{txt:'PRECAUCIÓN',        phrase:'Evalúa antes de entrar',     col:'var(--amber)',atm:'#3d2600'};
-  return        {txt:'NO RECOMENDADO',     phrase:'Evita ingresar hoy',         col:'var(--red)',  atm:'#3d0010'};
+/* ─── VEREDICTO — basado en el nivel activo, no solo el score global ─── */
+function getVerdict(sc, lvData) {
+  // Si tenemos lvData, el veredicto principal refleja el nivel seleccionado
+  if (lvData) {
+    const cur = lvData[level];
+    const lbl = LEVEL_THR[level].label;
+    if (lvData.beginner?.status === 'can') {
+      return {txt:'APTO PARA NADAR', phrase:'Todos los niveles pueden nadar hoy', col:'var(--green)', atm:'#003d20'};
+    }
+    if (cur?.status === 'can') {
+      return {txt:'APTO PARA NADAR', phrase:`Apto para ${lbl.toLowerCase()} hoy`, col:'var(--green)', atm:'#003d20'};
+    }
+    if (cur?.status === 'warn') {
+      return {txt:'PRECAUCIÓN', phrase:`${lbl} — evalúa antes de entrar`, col:'var(--amber)', atm:'#3d2600'};
+    }
+    if (sc >= 50) {
+      return {txt:'PRECAUCIÓN', phrase:`No apto para ${lbl.toLowerCase()} — condiciones difíciles`, col:'var(--amber)', atm:'#3d2600'};
+    }
+    return {txt:'NO RECOMENDADO', phrase:`No apto para ${lbl.toLowerCase()} hoy`, col:'var(--red)', atm:'#3d0010'};
+  }
+  // Fallback sin lvData
+  if(sc>=75)return{txt:'APTO PARA NADAR', phrase:'Sí, puedes nadar hoy',      col:'var(--green)',atm:'#003d20'};
+  if(sc>=50)return{txt:'PRECAUCIÓN',       phrase:'Evalúa antes de entrar',    col:'var(--amber)',atm:'#3d2600'};
+  return         {txt:'NO RECOMENDADO',    phrase:'Evita ingresar hoy',        col:'var(--red)',  atm:'#3d0010'};
 }
 
-/* ═══════════ FLAG ═══════════ */
-function getFlag(sc,dgStatus){
-  if(dgStatus==='bad')return{key:'purple',col:'var(--purple)',label:'Bandera Morada',action:'No ingresar — riesgo sanitario activo.'};
-  if(sc>=75)return{key:'green', col:'var(--green)',label:'Bandera Verde',  action:'Buen momento para nadar.'};
-  if(sc>=50)return{key:'yellow',col:'var(--amber)',label:'Bandera Amarilla',action:'Entra con precaución según tu nivel.'};
-  return         {key:'red',   col:'var(--red)',  label:'Bandera Roja',   action:'Evita ingresar al mar hoy.'};
+/* ─── BANDERA — coherente con el veredicto del nivel activo ─── */
+function getFlag(sc, dgStatus, lvData) {
+  if (dgStatus === 'bad') return {key:'purple', col:'var(--purple)', label:'Bandera Morada', action:'No ingresar — condición sanitaria no apta.'};
+  if (lvData) {
+    const cur = lvData[level];
+    if (cur?.status === 'can' && lvData.beginner?.status === 'can')
+      return {key:'green',  col:'var(--green)', label:'Bandera Verde',    action:'Todos los niveles pueden nadar.'};
+    if (cur?.status === 'can')
+      return {key:'green',  col:'var(--green)', label:'Bandera Verde',    action:'Apto para ' + LEVEL_THR[level].label.toLowerCase() + ' y avanzados.'};
+    if (cur?.status === 'warn')
+      return {key:'yellow', col:'var(--amber)', label:'Bandera Amarilla', action:'Entra con precaución. Evalúa las condiciones en el agua.'};
+    return   {key:'red',    col:'var(--red)',   label:'Bandera Roja',     action:'No apto para ' + LEVEL_THR[level].label.toLowerCase() + ' hoy.'};
+  }
+  if(sc>=75)return{key:'green',  col:'var(--green)', label:'Bandera Verde',    action:'Buen momento para nadar.'};
+  if(sc>=50)return{key:'yellow', col:'var(--amber)', label:'Bandera Amarilla', action:'Entra con precaución según tu nivel.'};
+  return         {key:'red',     col:'var(--red)',   label:'Bandera Roja',     action:'Evita ingresar al mar hoy.'};
 }
-function buildFlagReason(d,sc){
-  /* Solo mostrar razones negativas si las hay; si todo ok, decir condición favorable */
-  if(sc>=75)return'Condiciones favorables en todos los parámetros.';
-  const wh=d.marine.current?.wave_height??0;
-  const ws=d.weather.current?.wind_speed_10m??0;
-  const uv=d.weather.current?.uv_index??0;
-  const sw=d.marine.current?.swell_wave_height??0;
-  const p=[];
-  if(wh>=2.0)p.push('oleaje muy fuerte');else if(wh>=1.5)p.push('oleaje importante');else if(wh>=1.0)p.push('oleaje moderado');
-  if(ws>=25)p.push('viento fuerte');else if(ws>=15)p.push('viento con deriva');
-  if(sw>=1.5)p.push(`swell ${sw.toFixed(1)}m`);
-  if(uv>=8)p.push('UV muy alta');
-  return p.length?'Precaución por '+p.join(', ')+'.':'Condición marginal — revisa los datos.';
+
+function buildFlagReason(d, sc, lvData) {
+  const wh = d.marine.current?.wave_height ?? 0;
+  const ws = d.weather.current?.wind_speed_10m ?? 0;
+  const sw = d.marine.current?.swell_wave_height ?? 0;
+  const thr = LEVEL_THR[level];
+  const p = [];
+  if (wh > thr.wave)      p.push(`oleaje ${wh.toFixed(2)}m (límite ${thr.wave}m para ${thr.label.toLowerCase()})`);
+  else if (wh >= 1.5)     p.push(`oleaje importante (${wh.toFixed(2)}m)`);
+  if (ws > thr.wind)      p.push(`viento ${Math.round(ws)} km/h (límite ${thr.wind} km/h)`);
+  if (sw >= 1.5)          p.push(`swell ${sw.toFixed(1)}m`);
+  if (!p.length) return 'Condiciones dentro de los límites para ' + thr.label.toLowerCase() + '.';
+  return 'Precaución: ' + p.join('; ') + '.';
 }
 
 /* ═══════════ ALERTS ═══════════ */
@@ -924,7 +1205,7 @@ function generateAlerts(d,lv){
       msg:`Sin condiciones adecuadas para ${thr.label.toLowerCase()} hoy.`,
       act:'Considera volver mañana.'});
   }
-  const sc2=h=>calcScore(hwh[h]??1.5,hwp[h]??8,hws[h]??15,huv[h]??5);
+  const sc2=h=>calcScoreByLevel(hwh[h]??1.5,hwp[h]??8,hws[h]??15,huv[h]??5,lv);
   const m2=[],a2=[];
   for(let h=6;h<12;h++)m2.push(sc2(h));
   for(let h=12;h<18;h++)a2.push(sc2(h));
@@ -955,11 +1236,14 @@ function windInfo(w){
   return       {txt:'Muy fuerte',     impact:'⚠ Peligroso',            col:'var(--red)'};
 }
 function uvInfo(uv){
-  if(uv<=2)return{cat:'Bajo',    col:'#00e5a0',adv:'Sin restricciones. Protector básico.'};
-  if(uv<=5)return{cat:'Moderado',col:'#c6e03b',adv:'FPS 30+ resistente al agua y lentes UV400.'};
-  if(uv<=7)return{cat:'Alto',    col:'#ff9800',adv:'FPS 50+ obligatorio. Evita 10am–2pm.'};
-  if(uv<=10)return{cat:'Muy Alto',col:'#f44336',adv:'⚠ FPS 50+ y gorra. Limita exposición.'};
-  return          {cat:'Extremo', col:'#9c27b0',adv:'🚨 Nada antes de las 8am. Protección máxima.'};
+  const h = new Date().getHours();
+  const isNight = h < 6 || h > 19;
+  if(uv === 0 && isNight) return{cat:'Nocturno',col:'#3d627c',adv:'Sin radiación UV en este momento. Revisa el pronóstico para mañana.'};
+  if(uv<=2)  return{cat:'Bajo',     col:'#00e5a0',adv:'Sin restricciones. Protector básico.'};
+  if(uv<=5)  return{cat:'Moderado', col:'#c6e03b',adv:'FPS 30+ resistente al agua y lentes UV400.'};
+  if(uv<=7)  return{cat:'Alto',     col:'#ff9800',adv:'FPS 50+ obligatorio. Evita 10am–2pm.'};
+  if(uv<=10) return{cat:'Muy Alto', col:'#f44336',adv:'⚠ FPS 50+ y gorra. Limita exposición.'};
+  return           {cat:'Extremo',  col:'#9c27b0',adv:'🚨 Nada antes de las 8am. Protección máxima.'};
 }
 function thermoInfo(t){
   if(t<17)return{emoji:'🥶',hint:'Traje 5mm necesario'};
@@ -977,8 +1261,10 @@ function getTags(d){
   const wh=d.marine.current?.wave_height??0,sw=d.marine.current?.swell_wave_height??0;
   const wi=d.weather.current?.wind_speed_10m??0,uv=d.weather.current?.uv_index??0;
   const sst=d.marine.current?.sea_surface_temperature??0,t=[];
-  if(wh<1.0)t.push({c:'tg',x:`Oleaje OK · ${wh.toFixed(2)}m`});
-  else if(wh<1.8)t.push({c:'ty',x:`Oleaje ${wh.toFixed(2)}m`});
+  const thr=LEVEL_THR[level];
+  // Oleaje relativo al nivel activo
+  if(wh<=thr.wave)t.push({c:'tg',x:`Oleaje OK · ${wh.toFixed(2)}m`});
+  else if(wh<=thr.wave*1.5)t.push({c:'ty',x:`Oleaje ${wh.toFixed(2)}m`});
   else t.push({c:'tr',x:`Oleaje ALTO · ${wh.toFixed(2)}m`});
   if(sw>=1.5)t.push({c:'ty',x:`Swell ${sw.toFixed(1)}m`});
   if(wi<15)t.push({c:'tg',x:'Viento OK'});
@@ -991,11 +1277,14 @@ function getTags(d){
   return t;
 }
 function fcClass(wh,ws,dgBad){
-  if(dgBad)return'p';
-  const s=calcScore(wh,8,ws,5);
-  return s>=75?'g':s>=50?'y':'r';
+  if(dgBad) return 'p';
+  // Usar umbrales del nivel activo, no score global
+  const thr = LEVEL_THR[level];
+  if (wh < thr.wave && ws < thr.wind)  return 'g'; // Óptimo para este nivel
+  if (wh < thr.wave * 1.5 && ws < thr.wind * 1.5) return 'y'; // Precaución
+  return 'r'; // Adverso
 }
-const fcLabel=c=>({g:'Óptimo',y:'Precaución',r:'Adverso',p:'No sanitario'}[c]);
+const fcLabel = c => ({g:'Óptimo',y:'Precaución',r:'Adverso',p:'No sanitario'}[c]);
 
 /* ═══════════ RENDER RAIL ═══════════ */
 function renderRail(){
@@ -1023,7 +1312,11 @@ function initHeroCanvas(waveHeight){
   const c=document.getElementById('hc');
   if(!c)return;
   const ctx=c.getContext('2d');
-  function resize(){c.width=c.offsetWidth;c.height=c.offsetHeight;}
+  function resize(){
+    // iOS devuelve 0 en offsetWidth si el canvas aún no está en DOM
+    c.width  = c.offsetWidth  || window.innerWidth;
+    c.height = c.offsetHeight || Math.round(window.innerHeight * 0.85);
+  }
   resize();
   const amp=Math.min(55,waveHeight*35+12);
   const H=c.height;
@@ -1079,10 +1372,10 @@ function initBgWaves(){
 /* ═══════════ RENDER PAGE ═══════════ */
 function renderPage(beach,d,lvData){
   lvData = lvData || detectLevels(d);
-  const sc  =scoreFromData(d);
-  const vd  =getVerdict(sc);
-  const flag=getFlag(sc,beach.digesa);
-  const flagR=buildFlagReason(d,sc);
+  const sc   = scoreFromData(d);
+  const vd   = getVerdict(sc, lvData);
+  const flag = getFlag(sc, beach.digesa, lvData);
+  const flagR = buildFlagReason(d, sc, lvData);
   const dg  =DIGESA_MAP[beach.digesa];
   const m   =d.marine.current??{};
   const w   =d.weather.current??{};
@@ -1151,23 +1444,30 @@ function renderPage(beach,d,lvData){
   }
   setAtm(vd);
 
-  // Pre-computar HTML de niveles (evita template literals anidados)
-  const LVNAMES = {beginner:'Principiante',intermediate:'Intermedio',advanced:'Avanzado'};
-  const LVICONS = {can:'✓', warn:'~', no:'✗'};
+  // Pre-computar HTML de niveles — texto claro sin iconos crípticos
+  const LVNAMES = {beginner:'Principiante', intermediate:'Intermedio', advanced:'Avanzado'};
+  const LVVERDICTS = {can:'Puede nadar', warn:'Con cuidado', no:'No apto'};
   const levelsHTML = ['beginner','intermediate','advanced'].map(lv => {
     const info = lvData[lv];
     const isActive = lv === level;
-    const bg = info.status==='can'?'rgba(0,229,160,.1)':info.status==='warn'?'rgba(255,167,38,.1)':'rgba(255,61,90,.08)';
-    const bc = info.status==='can'?'rgba(0,229,160,.3)':info.status==='warn'?'rgba(255,167,38,.28)':'rgba(255,61,90,.22)';
-    const activeStyle = isActive ? ' lv-apt-active' : '';
-    const labelColor = isActive ? info.color : 'var(--ts)';
-    return '<div class="lv-apt' + activeStyle + '" style="background:' + bg + ';border-color:' + bc + '">' +
-      '<span class="lv-apt-icon" style="color:' + info.color + '">' + LVICONS[info.status] + '</span>' +
-      '<span class="lv-apt-label" style="color:' + labelColor + '">' + LVNAMES[lv] + '</span>' +
+    const bg = info.status==='can' ? 'rgba(0,229,160,.1)' : info.status==='warn' ? 'rgba(255,167,38,.08)' : 'rgba(255,61,90,.07)';
+    const bc = info.status==='can' ? 'rgba(0,229,160,.28)' : info.status==='warn' ? 'rgba(255,167,38,.25)' : 'rgba(255,61,90,.22)';
+    const activeExtra = isActive ? ';box-shadow:0 0 0 1.5px ' + info.color : '';
+    return '<div class="lv-apt' + (isActive?' lv-apt-active':'') + '" style="background:' + bg + ';border-color:' + bc + activeExtra + '">' +
+      '<span class="lv-apt-label" style="color:' + (isActive ? info.color : 'var(--ts)') + ';font-weight:' + (isActive?'700':'400') + '">' + LVNAMES[lv] + '</span>' +
+      '<span class="lv-apt-verdict" style="color:' + info.color + '">' + LVVERDICTS[info.status] + '</span>' +
       '</div>';
   }).join('');
 
   return`
+<!-- Stale data badge -->
+<div class="stale-bar" id="staleBadge" onclick="doRefresh()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <span>Datos de hace más de 1 hora — toca para actualizar</span>
+</div>
+
 <!-- ═══ HERO ═══ -->
 <section class="hero">
   <div class="hero-bg"><canvas id="hc"></canvas></div>
@@ -1333,13 +1633,8 @@ function renderPage(beach,d,lvData){
     </div>
   </div>
   <div class="sec fu">
-    <div class="sec-hd"><span class="sec-ico">🛡️</span><span class="sec-hd-t">Seguridad</span></div>
-    <div class="safety-g">
-      <div class="saf-i"><span class="saf-ico">👥</span><div class="saf-t"><b>Nadar acompañado</b>Nunca solo. Avisa dónde nadas.</div></div>
-      <div class="saf-i"><span class="saf-ico">🌊</span><div class="saf-t"><b>Entrada</b>Espera entre olas. No le des la espalda al mar.</div></div>
-      <div class="saf-i"><span class="saf-ico">💪</span><div class="saf-t"><b>Corriente</b>Nada paralelo a la orilla, no contra la corriente.</div></div>
-      <div class="saf-i"><span class="saf-ico">📍</span><div class="saf-t"><b>Referencia</b>Marca un punto en tierra antes de entrar.</div></div>
-    </div>
+    <div class="sec-hd"><span class="sec-ico">🛡️</span><span class="sec-hd-t">Seguridad · condiciones de hoy</span></div>
+    ${buildContextualSafety(d)}
   </div>
   <div style="text-align:center;font-family:var(--fm);font-size:.57rem;color:var(--tm);padding:8px 0 4px">
     📍 ${beach.note} · ${beach.lat.toFixed(4)}, ${beach.lon.toFixed(4)}
@@ -1439,9 +1734,8 @@ function tS(hd){hd.nextElementSibling.classList.toggle('open');hd.querySelector(
 /* ═══════════ LEVEL ═══════════ */
 function setLevel(lv){
   level=lv;
-  // Marcar botón seleccionado
+  savePrefs(); // guardar
   document.querySelectorAll('.lv').forEach(b=>b.classList.toggle('on',b.dataset.lv===lv));
-  // Re-renderizar con nuevo score por nivel
   const beach=BEACHES[active];
   if(cache[beach.id]){
     const lvData=detectLevels(cache[beach.id]);
@@ -1452,7 +1746,9 @@ function setLevel(lv){
 
 /* ═══════════ PICK ═══════════ */
 async function pick(idx){
-  active=idx;renderRail();
+  active=idx;
+  savePrefs(); // guardar playa
+  renderRail();
   const beach=BEACHES[idx];
   document.getElementById('bbCoords').innerHTML=`<span>${beach.lat.toFixed(4)}, ${beach.lon.toFixed(4)}</span>`;
   const app=document.getElementById('app');
@@ -1483,9 +1779,13 @@ function renderBeach(beach,d){
   setTimeout(()=>{
     app.innerHTML=renderPage(beach,d,lvData);
     const wh=d.marine.current?.wave_height??0;
+    // Doble requestAnimationFrame para asegurar layout en iOS antes de medir canvas
     requestAnimationFrame(()=>{
-      initHeroCanvas(wh);
-      app.style.transition='opacity .35s ease';app.style.opacity='1';
+      requestAnimationFrame(()=>{
+        initHeroCanvas(wh);
+        app.style.transition='opacity .35s ease';
+        app.style.opacity='1';
+      });
     });
   },100);
 }
@@ -1660,12 +1960,12 @@ function parseDHNAvisos(html) {
     const btext = selected.blockText;
 
     // Texto principal del aviso (primer párrafo largo de la Marina)
-    const mainMatch = btext.match(/La Marina de Guerra[^.]{30,500}\./i);
+    const mainMatch = btext.match(/La Marina de Guerra[^.]{30,900}\./i);
     const mainText = mainMatch ? mainMatch[0].replace(/\s+/g,' ').trim() : '';
 
     // Litoral centro específico del bloque
     const lcMatch = btext.match(/[Ll]itoral\s+[Cc]entro[^:]*:([\s\S]{10,300}?)(?:[Ll]itoral\s+[Ss]ur|[Ll]itoral\s+[Nn]orte|Se\s+recomienda|Se\s+exhorta|\d+\s*\.)/);
-    const litCentro = lcMatch ? lcMatch[1].replace(/\s+/g,' ').trim() : (mainText.substring(0,200) || 'Ver documento oficial.');
+    const litCentro = lcMatch ? lcMatch[1].replace(/\s+/g,' ').trim() : (mainText.substring(0,400) || 'Ver documento oficial.');
 
     // Litoral norte del mismo bloque
     const lnMatch = btext.match(/[Ll]itoral\s+[Nn]orte[^:]*:([\s\S]{10,200}?)(?:[Ll]itoral\s+[Cc]entro|[Ll]itoral\s+[Ss]ur|Se\s+recomienda|\d+\s*\.)/);
@@ -1822,10 +2122,15 @@ function renderDHNCard(dhn, mareas) {
     <div class="dhn-hd">
       <span class="dhn-dot" style="background:${dhn.color}"></span>
       <div style="flex:1">
-        <div class="dhn-ttl">DIHIDRONAV — Marina de Guerra del Perú</div>
-        <div class="dhn-src">Dirección de Hidrografía y Navegación</div>
+        <div class="dhn-ttl">DIHIDRONAV</div>
+        <div class="dhn-src">Marina de Guerra del Perú · Fuente oficial</div>
       </div>
       <span class="dhn-badge" style="color:${dhn.color};border-color:${dhn.color}44;background:${dhn.color}11">${dhn.tipo}</span>
+    </div>
+    <div class="dhn-official-seal">
+      <div class="dhn-seal-line"></div>
+      <span>Dirección de Hidrografía y Navegación</span>
+      <div class="dhn-seal-line" style="background:linear-gradient(to left, rgba(0,130,200,.3), transparent)"></div>
     </div>
     ${dhn.estadoLabel ? '<div style="font-family:var(--fm);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;padding:4px 15px 0;color:' + (dhn.estado==='vigente'?'var(--green)':dhn.estado==='proximo'?'var(--amber)':'var(--ts)') + '">' + (dhn.estado==='vigente'?'● Vigente hoy':'○ ' + dhn.estadoLabel) + '</div>' : ''}
     <div class="dhn-body">
@@ -1838,7 +2143,7 @@ function renderDHNCard(dhn, mareas) {
         </div>
       </div>
 
-      ${dhn.litCentro ? `<div class="dhn-quote">${dhn.litCentro}</div>` : ''}
+      ${dhn.litCentro ? '<div class="dhn-quote">' + (dhn.litCentro.length > 320 ? dhn.litCentro.substring(0,320) + '...' : dhn.litCentro) + '</div>' : ''}
 
       ${dhn.gdocsUrl ? `
       <div id="dhn-viewer-wrap"></div>
@@ -1864,25 +2169,34 @@ function renderDHNCard(dhn, mareas) {
 
 /* ═══════════ INIT ═══════════ */
 async function init(){
+  // Cargar preferencias guardadas antes de cualquier render
+  loadPrefs();
+  updateOnlineStatus();
+
   initBgWaves();
   renderRail();
 
-  // 1. Cargar datos principales (Open-Meteo) — PRIMERO, sin DIHIDRONAV
-  await pick(0);
+  // Actualizar selector de nivel visual
+  document.querySelectorAll('.lv').forEach(b => b.classList.toggle('on', b.dataset.lv === level));
+
+  // 1. Cargar playa favorita guardada
+  await pick(active);
   updateTime();
 
   // 2. Esconder loader
   const ld = document.getElementById('loader');
   if (ld) { ld.classList.add('out'); setTimeout(() => ld?.remove(), 700); }
 
-  // 3. DIHIDRONAV en background — no bloquea nada
-  Promise.allSettled([
-    fetchDHN(),
-    fetchMareas(),
-  ]).then(([dhnResult, marResult]) => {
-    dhnCache  = dhnResult.status  === 'fulfilled' ? dhnResult.value  : null;
-    mareaCache = marResult.status === 'fulfilled' ? marResult.value : null;
-    // Actualizar solo el slot DIHIDRONAV si está visible
+  // 3. Mostrar onboarding solo en primera apertura
+  setTimeout(showOnboarding, 800);
+
+  // 4. Stale check cada 5 minutos
+  setInterval(checkStale, 5 * 60 * 1000);
+
+  // 5. DIHIDRONAV en background
+  Promise.allSettled([fetchDHN(), fetchMareas()]).then(([dhnResult, marResult]) => {
+    dhnCache   = dhnResult.status  === 'fulfilled' ? dhnResult.value  : null;
+    mareaCache = marResult.status  === 'fulfilled' ? marResult.value  : null;
     const slot = document.getElementById('dhn-slot');
     if (slot) slot.innerHTML = renderDHNCard(dhnCache, mareaCache);
   }).catch(() => {});
